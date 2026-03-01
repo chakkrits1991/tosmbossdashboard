@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.0.4</title>
+    <title>TOS-M Tracker V1.1.4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -16,33 +16,44 @@
         @keyframes shadow-pulse { 0% { box-shadow: 0 0 0 0px rgba(249, 115, 22, 0.4); } 100% { box-shadow: 0 0 0 15px rgba(249, 115, 22, 0); } }
         .btn-locked { opacity: 0.15; cursor: not-allowed !important; pointer-events: none; filter: grayscale(1); }
         .bg-black-40 { background-color: rgba(0, 0, 0, 0.4); }
-        .text-event-start { color: #f97316; }
+        .text-event-orange { color: #f97316 !important; text-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <header class="max-w-2xl mx-auto text-center mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.0.4</h1>
+        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.1.4</h1>
         <div id="c-status" class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Disconnected</div>
     </header>
 
     <div class="max-w-2xl mx-auto mb-6">
-        <div class="bg-gray-800 p-4 rounded-3xl border border-gray-700 shadow-xl">
-            <div class="mb-3">
-                <label class="block text-xs text-yellow-500 font-bold mb-1 uppercase">Group ID</label>
-                <input type="text" id="_grp" oninput="_vld()" placeholder="Guild Name" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-yellow-500">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Name</label>
-                    <input type="text" id="_usr" oninput="_vld()" placeholder="Nickname" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
+        <div id="auth-card" class="bg-gray-800 p-4 rounded-3xl border border-gray-700 shadow-xl">
+            <div id="input-fields">
+                <div class="mb-3">
+                    <label class="block text-xs text-yellow-500 font-bold mb-1 uppercase">Group ID</label>
+                    <input type="text" id="_grp" oninput="_vld()" placeholder="Guild Name" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-yellow-500">
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Webhook</label>
-                    <input type="password" id="_whk" oninput="_vld()" placeholder="https://..." class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Name</label>
+                        <input type="text" id="_usr" oninput="_vld()" placeholder="Nickname" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Webhook</label>
+                        <input type="password" id="_whk" oninput="_vld()" placeholder="https://..." class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                    </div>
                 </div>
+                <button id="_svB" onclick="_save()" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs py-3 rounded-xl font-bold btn-locked">SAVE & CONNECT</button>
             </div>
-            <button id="_svB" onclick="_save()" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs py-3 rounded-xl font-bold btn-locked">SAVE & CONNECT</button>
+
+            <div id="locked-fields" class="hidden flex justify-between items-center py-1">
+                <div>
+                    <div class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Status: Connected</div>
+                    <div class="text-sm font-bold text-white"><span id="display-usr"></span> @ <span id="display-grp" class="text-yellow-500"></span></div>
+                </div>
+                <button onclick="_logout()" class="text-[10px] bg-red-900/20 text-red-400 border border-red-900/50 px-3 py-2 rounded-lg font-bold hover:bg-red-600 hover:text-white transition-all">LOGOUT</button>
+            </div>
+            
             <p id="_warn" class="text-[10px] text-center mt-2 font-bold uppercase"></p>
         </div>
     </div>
@@ -50,7 +61,6 @@
     <div id="b-cont" class="max-w-2xl mx-auto flex flex-col gap-6"></div>
 
     <script>
-        /* 🛡️ OBFUSCATED LOGIC V1.0.4 */
         const _0x1f2a = { databaseURL: "\x68\x74\x74\x70\x73\x3a\x2f\x2f\x74\x6f\x73\x2d\x62\x6f\x73\x73\x2d\x74\x72\x61\x63\x6b\x65\x72\x2d\x64\x65\x66\x61\x75\x6c\x74\x2d\x72\x74\x64\x62\x2e\x61\x73\x69\x61\x2d\x73\x6f\x75\x74\x68\x65\x61\x73\x74\x31\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x64\x61\x74\x61\x62\x61\x73\x65\x2e\x61\x70\x70\x2f" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
@@ -60,26 +70,39 @@
 
         function _vld() {
             const g = document.getElementById('_grp').value.trim(), n = document.getElementById('_usr').value.trim(), w = document.getElementById('_whk').value.trim();
+            if (localStorage.getItem('tos_locked') === 'true') return;
             const canS = g.length >= 2;
             document.getElementById('_svB').classList.toggle('btn-locked', !canS);
             const wrn = document.getElementById('_warn');
             if (!canS) { wrn.innerText = "⚠️ Enter Group ID"; wrn.className = "text-[10px] text-red-500 text-center mt-2 font-bold uppercase"; }
             else if (n.length < 2 || !w.startsWith('https://')) { wrn.innerText = "ℹ️ View Only Mode"; wrn.className = "text-[10px] text-blue-400 text-center mt-2 font-bold uppercase"; }
-            else { wrn.innerText = "✅ Full Access"; wrn.className = "text-[10px] text-green-500 text-center mt-2 font-bold uppercase"; }
-            return canS;
+            else { wrn.innerText = "✅ Full Access Ready"; wrn.className = "text-[10px] text-green-500 text-center mt-2 font-bold uppercase"; }
         }
 
         async function _init() {
             try {
                 const r = await fetch('bosses.json?v=' + Date.now());
                 _bsData = await r.json();
+                
                 const sG = localStorage.getItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65') || '';
                 const sN = localStorage.getItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65') || '';
                 const sW = localStorage.getItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b') || '';
-                document.getElementById('_grp').value = sG; document.getElementById('_usr').value = sN; document.getElementById('_whk').value = sW;
-                if (sG && sN && sW.startsWith('https://')) _isE = true;
-                _rend(); _vld();
-                if (sG) { _sync(sG); _loop(); }
+                const isLocked = localStorage.getItem('tos_locked') === 'true';
+
+                if (isLocked && sG) {
+                    document.getElementById('input-fields').classList.add('hidden');
+                    document.getElementById('locked-fields').classList.remove('hidden');
+                    document.getElementById('display-usr').innerText = sN || "Guest";
+                    document.getElementById('display-grp').innerText = sG;
+                    _isE = (sN && sW.startsWith('https://'));
+                    _sync(sG);
+                } else {
+                    document.getElementById('_grp').value = sG;
+                    document.getElementById('_usr').value = sN;
+                    document.getElementById('_whk').value = sW;
+                }
+
+                _rend(); _vld(); _loop();
             } catch (e) { console.warn("Err"); }
         }
 
@@ -91,7 +114,7 @@
                     <div class="relative w-full md:w-36 h-36 flex-shrink-0 mx-auto">
                         <div class="w-full h-full rounded-2xl overflow-hidden border border-gray-800"><img src="${b.img}" class="w-full h-full object-cover"></div>
                         <button onclick="_pin('card-${b.id}')" class="absolute -top-2 -left-2 bg-gray-800 rounded-full p-1 border border-gray-700 z-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${p?'text-yellow-400 fill-current':'text-gray-500'}" viewBox="0 0 24 24" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${p?'text-yellow-400 fill-current':'text-gray-600'}" viewBox="0 0 24 24" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </button>
                     </div>
                     <div class="flex-1">
@@ -99,11 +122,14 @@
                             <div><h3 class="text-2xl font-bold text-white">${b.name}</h3><div class="text-red-500 text-xs font-bold mt-1 uppercase">📍 ${b.map}</div><div id="log-${b.id}" class="text-xs text-gray-500 mt-1 italic">No Data</div></div>
                             <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 p-2 ${l}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                         </div>
-                        <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800"><div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono">READY</div><div id="st-${b.id}" class="text-xs text-green-500 font-bold mt-1 uppercase">Ready</div></div>
+                        <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800">
+                            <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono uppercase">READY</div>
+                            <div id="st-${b.id}" class="text-xs text-green-500 font-bold mt-1 uppercase">Ready to Hunt</div>
+                        </div>
                         <div class="mt-5 grid grid-cols-1 gap-2">
-                            <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl ${l}">เพิ่งตาย (${b.respawn}m)</button>
+                            <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl ${l}">เพิ่งตาย (${b.respawn} นาที)</button>
                             <div class="flex gap-2">
-                                <input type="text" id="in-${b.id}" placeholder="นาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none ${l}">
+                                <input type="number" id="in-${b.id}" placeholder="นาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none ${l}">
                                 <button onclick="_mchk('${b.id}')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 rounded-xl font-bold ${l}">เริ่มนับ</button>
                             </div>
                         </div>
@@ -135,11 +161,14 @@
                             stE.innerText = "COUNTING DOWN..."; stE.className = "text-xs text-gray-500 font-bold mt-1 uppercase";
                             cdE.classList.remove('alive-glow');
                         } else {
-                            tmE.innerText = "EVENT START! ⚔️"; tmE.className = "text-3xl text-event-start font-bold";
-                            stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-xs text-event-start font-bold mt-1 uppercase";
+                            tmE.innerText = "EVENT START! ⚔️"; tmE.className = "text-3xl text-event-orange font-bold";
+                            stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-xs text-event-orange font-bold mt-1 uppercase";
                             cdE.classList.add('alive-glow');
+                            
                             if (!t.notified && _isE) {
-                                _post(b.id, "\x41\x4c\x49\x56\x45");
+                                // ดึงเวลาปัจจุบันรวมวินาทีตามบอสสั่ง
+                                const evTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                                _post(b.id, "\x41\x4c\x49\x56\x45", evTime);
                                 _db.ref(`groups/${localStorage.getItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65')}/timers/${b.id}`).update({ notified: true });
                             }
                         }
@@ -154,15 +183,13 @@
 
         function _chk(id, m) {
             if (!_isE) return;
-            const t = _fbD[id]; if (t && t.expireTime > Date.now()) { if (!confirm(`⚠️ Overwrite timer?`)) return; }
+            const t = _fbD[id]; if (t && t.expireTime > Date.now()) { if (!confirm(`⚠️ เวลากำลังเดินอยู่ จะนับใหม่ทับข้อมูลเดิมใช่ไหม?`)) return; }
             _push(id, m);
         }
 
         function _mchk(id) {
-            const v = document.getElementById(`in-${id}`).value;
-            if (!v) return;
-            let m = v.includes('.') ? parseInt(v.split('.')[0]) + (parseInt(v.split('.')[1])/60) : parseInt(v);
-            if (!isNaN(m)) { _chk(id, m); document.getElementById(`in-${id}`).value = ''; }
+            const v = document.getElementById(`in-${id}`).value; if (!v) return;
+            _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value = '';
         }
 
         function _push(id, m) {
@@ -172,7 +199,7 @@
 
         function _rst(id) {
             const g = localStorage.getItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65');
-            if (_isE && confirm("Reset timer?")) { _post(id, "\x44\x45\x4c\x45\x54\x45"); _db.ref(`groups/${g}/timers/${id}`).remove(); }
+            if (_isE && confirm("ล้างข้อมูลเวลาของบอสตัวนี้?")) { _post(id, "\x44\x45\x4c\x45\x54\x45"); _db.ref(`groups/${g}/timers/${id}`).remove(); }
         }
 
         function _pin(id) {
@@ -182,19 +209,32 @@
 
         function _save() {
             const g = document.getElementById('_grp').value.trim(), n = document.getElementById('_usr').value.trim(), w = document.getElementById('_whk').value.trim();
-            if (g) {
+            if (g.length >= 2) {
                 localStorage.setItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65', g);
                 localStorage.setItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65', n);
                 localStorage.setItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b', w);
+                localStorage.setItem('tos_locked', 'true');
                 location.reload();
             }
         }
 
-        async function _post(id, ty) {
+        function _logout() {
+            if(confirm("ต้องการเปลี่ยนกลุ่มหรือแก้ไขชื่อใช่ไหม?")) {
+                localStorage.setItem('tos_locked', 'false');
+                location.reload();
+            }
+        }
+
+        async function _post(id, ty, evTime = "") {
             const w = localStorage.getItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b');
             if (!w || !w.startsWith('https://')) return;
             const b = _bsData.find(x => x.id === id), u = localStorage.getItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65');
-            let c = ty === "\x41\x4c\x49\x56\x45" ? `🚨 @everyone **EVENT START!**\n**[${b.name}]**\n📍 **${b.map}**` : `🗑️ **[${u}]** Reset timer: **[${b.name}]**`;
+            
+            // 🔥 FORMAT ตามที่บอสสั่งเป๊ะๆ
+            let c = ty === "\x41\x4c\x49\x56\x45" ? 
+                `**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\nสถานที่: **${b.map}**\nเวลาปัจจุบัน: **${evTime}**\nรีบไปตีมอนเปิดสเตจด่วน! @everyone` : 
+                `🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]**`;
+                
             try { fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) {}
         }
         _init();
