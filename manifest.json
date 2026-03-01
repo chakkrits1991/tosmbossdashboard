@@ -1,0 +1,15 @@
+{
+  "name": "TOS M Boss Tracker",
+  "short_name": "TOS Boss",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0b101a",
+  "theme_color": "#0b101a",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8019/8019124.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
