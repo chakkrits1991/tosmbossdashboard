@@ -1,107 +1,50 @@
 [
-  {
-    "id": "mirtis",
-    "name": "Mirtis (เมอร์ทิส)",
-    "respawn": 120,
-    "map": "Forest of Prayers",
-    "img": "https://i.imgur.com/83p731p.png"
-  },
-  {
-    "id": "helgasercle",
-    "name": "Helgasercle (เฮลก้า)",
-    "respawn": 120,
-    "map": "Mage Tower 5F",
-    "img": "https://i.imgur.com/kS9L6w4.png"
-  },
-  {
-    "id": "marnox",
-    "name": "Marnox (มาร์น็อกซ์)",
-    "respawn": 120,
-    "map": "Nuoridin Falls",
-    "img": "https://i.imgur.com/vHqY7eS.png"
-  },
-  {
-    "id": "rexipher",
-    "name": "Rexipher (เร็กซิเฟอร์)",
-    "respawn": 120,
-    "map": "Mage Tower 5F",
-    "img": "https://i.imgur.com/uGzX6mD.png"
-  },
-  {
-    "id": "neop",
-    "name": "Neop (นีออป)",
-    "respawn": 120,
-    "map": "Verididai Valley",
-    "img": "https://i.imgur.com/T0b4V2r.png"
-  },
-  {
-    "id": "velnia",
-    "name": "Velnia Monkey (ลิงม่วง)",
-    "respawn": 120,
-    "map": "Syla Forest",
-    "img": "https://i.imgur.com/1GvK0pQ.png"
-  },
-  {
-    "id": "blut",
-    "name": "Blut (บลัด)",
-    "respawn": 120,
-    "map": "Vilna Forest",
-    "img": "https://i.imgur.com/39hN7hG.png"
-  },
-  {
-    "id": "nuaele",
-    "name": "Nuaele (นูเอลเล่)",
-    "respawn": 120,
-    "map": "Klaipeda Outskirts",
-    "img": "https://i.imgur.com/W2O3b8x.png"
-  },
-  {
-    "id": "zaura",
-    "name": "Zaura (เซาร่า)",
-    "respawn": 120,
-    "map": "Royal Mausoleum 5F",
-    "img": "https://i.imgur.com/Xy8W8hA.png"
-  },
-  {
-    "id": "panton",
-    "name": "Panton Magician (แพนตอน)",
-    "respawn": 120,
-    "map": "Sventimas Forest",
-    "img": "https://i.imgur.com/M6LgA6G.png"
-  },
-  {
-    "id": "cerberus",
-    "name": "Cerberus (เซอร์เบอรัส)",
-    "respawn": 120,
-    "map": "Kateen Forest",
-    "img": "https://i.imgur.com/hY8o6Yx.png"
-  },
-  {
-    "id": "kubas",
-    "name": "Kubas (คูบาส)",
-    "respawn": 120,
-    "map": "Crystal Mine 3F",
-    "img": "https://i.imgur.com/RkU6f6U.png"
-  },
-  {
-    "id": "tomb_lord",
-    "name": "Tomb Lord (ทอมบ์ลอร์ด)",
-    "respawn": 120,
-    "map": "Royal Mausoleum 1F",
-    "img": "https://i.imgur.com/E8R9fUu.png"
-  },
-  {
-    "id": "Honeymeli",
-    "name": "Honeymeli Queen (ราชินีผึ้ง)",
-    "respawn": 120,
-    "map": "Dina Bee Farm",
-    "img": "https://i.imgur.com/S8W9pUv.png"
-  },
-  {
-    "id": "linkroller",
-    "name": "Linkroller (ลิงก์โรลเลอร์)",
-    "respawn": 120,
-    "map": "Vieta Gorge",
-    "img": "https://i.imgur.com/z8pG7uV.png"
-  }
+  { "id": "rocktortuga", "name": "Rocktortuga", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_rocktortuga.png" },
+  { "id": "poata", "name": "Poata", "respawn": 120, "map": "Nefritas Cliff", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_poata.png" },
+  { "id": "golem", "name": "Golem", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_golem.png" },
+  { "id": "woodspirit", "name": "Woodspirit", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_woodspirit.png" },
+  { "id": "vubbefighter", "name": "Red Vubbe Fighter", "respawn": 120, "map": "Crystal Mine", "element": "Fire (ไฟ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_vubbefighter.png" },
+  { "id": "spectermonarch", "name": "Specter Monarch", "respawn": 120, "map": "Ashaq Underground", "element": "Dark (มืด)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_spectermonarch.png" },
+  { "id": "capria", "name": "Capria", "respawn": 120, "map": "Main Field", "element": "Holy (ศักดิ์สิทธิ์)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_capria.png" },
+  { "id": "simorph", "name": "Simorph", "respawn": 120, "map": "Main Field", "element": "Ice (น้ำแข็ง)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_simorph.png" },
+  { "id": "throneweaver", "name": "Throneweaver", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_throneweaver.png" },
+  { "id": "nepenthes", "name": "Nepenthes", "respawn": 120, "map": "Main Field", "element": "Poison (พิษ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_nepenthes.png" },
+  { "id": "cyclops", "name": "Cyclops", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_cyclops.png" },
+  { "id": "malletwyvern", "name": "Mallet Wyvern", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "<https://www.tosbase.com/content/img/icons/monsters/boss_malletwyvern.png>" },
+  { "id": "necroventer",	"name":"Necroventer","respawn":"120","map":"Main Field","element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_necroventer.png"},
+  {	"id":"gesti","name":"Gesti","respawn":"120","map":"Main Field","element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_gesti.png"},
+  {	"id":"gremlin","name":"Gremlin","respawn":"120","map":"Main Field","element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_gremlin.png"},
+  {	"id":"velnewt","name":"Velnewt","respawn":"120","map":"Main Field","element":"Earth (ดิน)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_velnewt.png"},
+  {	"id":"iltiswort","name":"Iltiswort","respawn":"120","map":"Main Field","element":"Earth (ดิน)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_iltiswort.png"},
+  {	"id":"mummyghast","name":"Mummyghast","respawn":"120","map":"","element":"","img":"https://www.tosbase.com/content/img/icons/monsters/boss_mummyghast.png"},
+  { "id": "velniamonkey", "name": "Velnia Monkey", "respawn": 120, "map": "Syla Forest", "element": "Poison (พิษ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_velniamonkey.png" },
+  { "id": "deathweaver", "name": "Deathweaver", "respawn": 120, "map": "Main Field", "element": "Poison (พิษ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_deathweaver.png" },
+  { "id": "merregina", "name": "Merregina", "respawn": 120, "map": "Main Field", "element": "Ice (น้ำแข็ง)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_merregina.png" },
+  { "id": "sparnashead", "name": "Sparnashead", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_sparnashead.png" },
+  { "id": "clymen", "name": "Clymen", "respawn": 120, "map": "Main Field", "element": "Dark (มืด)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_clymen.png" },
+  { "id": "mothstem", "name": "Mothstem", "respawn": 120, "map": "Main Field", "element": "Poison (พิษ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_mothstem.png" },
+  { "id": "tutu", "name": "Tutu", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_tutu.png" },
+  { "id": "hydra", "name": "Hydra", "respawn": 120, "map": "Main Field", "element": "Ice (น้ำแข็ง)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_hydra.png" },
+  { "id": "werewolf", "name": "Werewolf", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "<https://www.tosbase.com/content/img/icons/monsters/boss_werewolf.png>" },
+  { "id": "reaverpede", "name": "Merge Reaverpede", "respawn": 120, "map": "",	"element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_reaverpede.png"},
+  {	"id":"grinender","name":"Grinender","respawn":"120","map":"Main Field","element":"Poison (พิษ)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_grinender.png"},
+  {	"id":"lavenzard","name":"Lavenzard","respawn":"120","map":"Main Field","element":"Fire (ไฟ)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_lavenzard.png"},
+  {	"id":"honeypin","name":"Honeypin","respawn":"120","map":"Main Field","element":"Earth (ดิน)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_honeypin.png"},
+  {	"id":"biteregina","name":"Biteregina","respawn":"120","map":"","element":"","img":""},
+  {	"id":"taumas","name":"Taumas","respawn":"120","map":"","element":"","img":""},
+  {	"id":"manticen","name":"Manticen","respawn":"120","map":"","element":"","img":""},
+  { "id": "chaferarchon", "name": "Chafer Archon", "respawn": 120, "map": "Main Field", "element": "Dark (มืด)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_chaferarchon.png" },
+  { "id": "bramble", "name": "Bramble", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bramble.png" },
+  { "id": "lithorex", "name": "Lithorex", "respawn": 120, "map": "Main Field", "element": "Lightning (สายฟ้า)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_lithorex.png" },
+  { "id": "yonazolem", "name": "Yonazolem", "respawn": 120, "map": "Main Field", "element": "Earth (ดิน)", "img": "<https://www.tosbase.com/content/img/icons/monsters/boss_yonazolem.png>" },
+  { "id": "bearkaras", "name": "Bearkaras", "respawn": 120, "map": "",	"element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_bearkaras.png"},
+  {	"id":"tomblord","name":"Tomb Lord","respawn":"120","map":"Royal Mausoleum 1F","element":"Earth (ดิน)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_tomblord.png"},
+  {	"id":"gorkas","name":"Gorkas","respawn":"120","map":"Main Field","element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_gorkas.png"},
+  {	"id":"rexipher","name":"Rexipher","respawn":"120","map":"Mage Tower 5F","element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_rexipher.png"},
+  {	"id":"scorpio","name":"Scorpio","respawn":"120","map":"","element":"","img":""},
+  {	"id":"corrupted","name":"Corrupted","respawn":"120","map":"","element":"","img":""},
+  { "id": "blut", "name": "Blut", "respawn": 120, "map": "Vilna Forest", "element": "Fire (ไฟ)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_blut.png" },
+  { "id": "nuaele", "name": "Nuaele", "respawn": 120, "map": "Klaipeda Outskirts", "element": "Dark (มืด)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_nuaele.png" },
+  { "id": "dionys", "name": "Dionys", "respawn": 120, "map": "Main Field", "element": "Dark (มืด)", "img": "https://www.tosbase.com/content/img/icons/monsters/boss_dionys.png" },
+  { "id": "hauberk", "name": "Hauberk", "respawn": 120, "map": "",	"element":"Dark (มืด)","img":"https://www.tosbase.com/content/img/icons/monsters/boss_hauberk.png"}
 ]
