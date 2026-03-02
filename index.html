@@ -7,6 +7,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
         body { font-family: 'Kanit', sans-serif; background-color: #0b101a; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
@@ -99,27 +100,66 @@
             const c = document.getElementById('b-cont');
             c.innerHTML = _bsData.map(b => {
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
+                
+                const elKey = (b.element || "").toLowerCase();
+                
+                // --- ปรับคู่สีใหม่ให้ Contrast สูงขึ้น แยกง่ายขึ้น ---
+                const elConfig = {
+                    'fire':      { border: '#ff4d4d', text: '#ff9999', bg: 'rgba(255, 0, 0, 0.15)', label: 'ไฟ' },      // แดงสว่าง
+                    'earth':     { border: '#b35900', text: '#ffb366', bg: 'rgba(139, 69, 19, 0.2)', label: 'ดิน' },    // น้ำตาลส้ม
+                    'ice':       { border: '#3399ff', text: '#99ccff', bg: 'rgba(0, 0, 255, 0.15)', label: 'น้ำแข็ง' },  // น้ำเงินฟ้า
+                    'lightning': { border: '#00e6e6', text: '#80ffff', bg: 'rgba(0, 255, 255, 0.15)', label: 'สายฟ้า' },  // ฟ้าสว่าง (Cyan)
+                    'light':     { border: '#ffd700', text: '#fff2a3', bg: 'rgba(255, 215, 0, 0.15)', label: 'แสงศักดิ์สิทธิ์' }, // เหลืองทอง
+                    'dark':      { border: '#bf00ff', text: '#e699ff', bg: 'rgba(148, 0, 211, 0.2)', label: 'ความมืด' }   // ม่วงเด่น
+                }[elKey] || { border: '#9ca3af', text: '#f3f4f6', bg: 'rgba(156, 163, 175, 0.1)', label: b.element };
+
+                // สีเผ่า: ปรับให้เข้มและขรึมกว่าธาตุ เพื่อไม่ให้แย่งความเด่น
+                const raceStyle = { border: '#5c2a1a', text: '#d2b48c', bg: 'rgba(92, 42, 26, 0.1)' };
+
                 return `<div class="boss-card bg-gray-900 p-6 flex flex-col md:flex-row gap-6 ${p?'pinned':''}" id="card-${b.id}">
                     <div class="relative w-full md:w-36 h-36 flex-shrink-0 mx-auto">
-                        <div class="w-full h-full rounded-2xl overflow-hidden border border-gray-800"><img src="${b.img}" class="w-full h-full object-cover"></div>
+                        <div class="w-full h-full rounded-2xl overflow-hidden border border-gray-800 shadow-lg">
+                            <img src="${b.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        </div>
                         <button onclick="_pin('card-${b.id}')" class="absolute -top-2 -left-2 bg-gray-800 rounded-full p-1 border border-gray-700 z-10">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${p?'text-yellow-400 fill-current':'text-gray-600'}" viewBox="0 0 24 24" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </button>
                     </div>
+
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
-                            <div><h3 class="text-2xl font-bold text-white">${b.name}</h3><div class="text-red-500 text-xs font-bold mt-1 uppercase">📍 ${b.map}</div><div id="log-${b.id}" class="text-xs text-gray-500 mt-1 italic">No Data</div></div>
-                            <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 p-2 ${l}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white tracking-tight">${b.name}</h3>
+                                <div class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1 uppercase">
+                                    <span class="material-symbols-outlined text-[14px]">location_on</span> ${b.map}
+                                </div>
+                                
+                                <div class="flex gap-1.5 mt-2">
+                                    <div class="px-2 py-0.5 rounded border" style="border-color: ${elConfig.border}; background-color: ${elConfig.bg};">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${elConfig.text}; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${elConfig.label}</span>
+                                    </div>
+                                    <div class="px-2 py-0.5 rounded border" style="border-color: ${raceStyle.border}; background-color: ${raceStyle.bg};">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${raceStyle.text}; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${b.race}</span>
+                                    </div>
+                                </div>
+                                <div id="log-${b.id}" class="text-[11px] text-gray-500 mt-3 italic tracking-wide">No Record Data</div>
+                            </div>
+                            
+                            <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 p-2 ${l}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
                         </div>
-                        <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800">
-                            <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono uppercase">READY</div>
-                            <div id="st-${b.id}" class="text-xs text-green-500 font-bold mt-1 uppercase">Ready to Hunt</div>
+
+                        <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800 shadow-inner">
+                            <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono uppercase tracking-tighter">READY</div>
+                            <div id="st-${b.id}" class="text-[10px] text-green-500 font-black mt-1 uppercase tracking-[0.2em]">Ready to Hunt</div>
                         </div>
+
                         <div class="mt-5 grid grid-cols-1 gap-2">
-                            <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl ${l}">เพิ่งตาย (${b.respawn} นาที)</button>
+                            <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl transition-all active:scale-[0.98] ${l}">เพิ่งตาย (${b.respawn} นาที)</button>
                             <div class="flex gap-2">
-                                <input type="number" id="in-${b.id}" placeholder="นาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none ${l}">
-                                <button onclick="_mchk('${b.id}')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-4 rounded-xl font-bold ${l}">เริ่มนับ</button>
+                                <input type="number" id="in-${b.id}" placeholder="ระบุนาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none focus:border-purple-500 ${l}">
+                                <button onclick="_mchk('${b.id}')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-5 rounded-xl font-bold transition-all active:scale-[0.98] ${l}">เริ่มนับ</button>
                             </div>
                         </div>
                     </div>
