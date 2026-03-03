@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.1.6</title>
+    <title>TOS-M Tracker V1.2.3 - Auto-Reset Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -18,69 +18,95 @@
         .btn-locked { opacity: 0.15; cursor: not-allowed !important; pointer-events: none; filter: grayscale(1); }
         .bg-black-40 { background-color: rgba(0, 0, 0, 0.4); }
         .text-event-orange { color: #f97316 !important; text-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <header class="max-w-2xl mx-auto text-center mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.1.6</h1>
+        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.2.3</h1>
         <div id="c-status" class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Disconnected</div>
     </header>
 
     <div class="max-w-2xl mx-auto mb-6">
         <div id="auth-card" class="bg-gray-800 p-4 rounded-3xl border border-gray-700 shadow-xl">
             <div id="input-fields">
-                <div class="mb-3">
-                    <label class="block text-xs text-yellow-500 font-bold mb-1 uppercase">Group ID</label>
-                    <input type="text" id="_grp" oninput="_vld()" placeholder="Guild Name" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-yellow-500">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                     <div>
-                        <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Name</label>
+                        <label class="block text-xs text-yellow-500 font-bold mb-1 uppercase tracking-widest">Server</label>
+                        <select id="_grp" onchange="_onSrvChg()" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-yellow-500 cursor-pointer">
+                            <option value="" disabled selected>เลือกเซิร์ฟเวอร์...</option>
+                            <option value="giltine">giltine</option>
+                            <option value="austeja">austeja</option>
+                            <option value="zemyna">zemyna</option>
+                            <option value="laima">laima</option>
+                            <option value="vaivora">vaivora</option>
+                            <option value="ausirine">ausirine</option>
+                            <option value="vakarine">vakarine</option>
+                            <option value="saule">saule</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-400 font-bold mb-1 uppercase tracking-widest">Your Name</label>
                         <input type="text" id="_usr" oninput="_vld()" placeholder="Nickname" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 font-bold mb-1 uppercase">Webhook</label>
-                        <input type="password" id="_whk" oninput="_vld()" placeholder="https://..." class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
-                    </div>
                 </div>
-                <button id="_svB" onclick="_save()" class="w-full mt-3 bg-blue-600 hover:bg-blue-500 text-white text-xs py-3 rounded-xl font-bold btn-locked uppercase">Save & Connect Profile</button>
+                <input type="hidden" id="_whk" value="">
+                <button id="_svB" onclick="_save()" class="w-full mt-1 bg-blue-600 hover:bg-blue-500 text-white text-xs py-3 rounded-xl font-bold btn-locked uppercase transition-all">Save & Connect Profile</button>
             </div>
 
             <div id="locked-fields" class="hidden flex justify-between items-center py-1">
                 <div>
                     <div class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Status: Connected</div>
-                    <div class="text-sm font-bold text-white"><span id="display-usr"></span> @ <span id="display-grp" class="text-yellow-500"></span></div>
+                    <div class="text-sm font-bold text-white"><span id="display-usr"></span> @ <span id="display-grp" class="text-yellow-500 font-black"></span></div>
                 </div>
                 <button onclick="_logout()" class="text-[10px] bg-red-900/20 text-red-400 border border-red-900/50 px-3 py-2 rounded-lg font-bold hover:bg-red-600 hover:text-white transition-all uppercase">Logout</button>
             </div>
-            <p id="_warn" class="text-[10px] text-center mt-2 font-bold uppercase"></p>
         </div>
     </div>
 
     <div id="b-cont" class="max-w-2xl mx-auto flex flex-col gap-6"></div>
 
     <script>
-        // Firebase Config (Obfuscated)
-        const _0x1f2a = { databaseURL: "\x68\x74\x74\x70\x73\x3a\x2f\x2f\x74\x6f\x73\x2d\x62\x6f\x73\x73\x2d\x74\x72\x61\x63\x6b\x65\x72\x2d\x64\x65\x66\x61\x75\x6c\x74\x2d\x72\x74\x64\x62\x2e\x61\x73\x69\x61\x2d\x73\x6f\x75\x74\x68\x65\x61\x73\x74\x31\x2e\x66\x69\x72\x65\x62\x61\x73\x65\x64\x61\x74\x61\x62\x61\x73\x65\x2e\x61\x70\x70\x2f" };
+        const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
         
-        let _bsData = [], _pnBs = JSON.parse(localStorage.getItem('\x74\x6f\x73\x5f\x70\x69\x6e\x6e\x65\x64\x5f\x62\x6f\x73\x73\x65\x73') || '[]');
+        let _bsData = [], _pnBs = JSON.parse(localStorage.getItem('tos_pinned_bosses') || '[]');
         let _fbD = {}, _isE = false, _currG = "";
 
+        const _webhooks = {
+            "giltine": "https://discord.com/api/webhooks/1477926894476460164/3pVC1WZZuA1A4X8OIkiK7ofOMN4IzT1DsuMXzMrmvIyvR5sDoAYv_UNc-pZ08sSB2wHC",
+            "austeja": "https://discord.com/api/webhooks/1477927327441617042/JhsAB3V4xAfyasMejxAY27l6DuXjubpWNjQqrd1qhgyEMYLUqrhiegmn0216DH4epHtK",
+            "zemyna": "https://discord.com/api/webhooks/1477929848323313778/wRCgRIPXaRmgnhvwYhTTeWWH3zhlc1zo6r30tNtZ33ZdRd2V3JfZtB1NSdjCpgsWqpZc",
+            "laima": "https://discord.com/api/webhooks/1477930110807179344/SO5ecWtw5EX8TRAmggrv_E9LIm6jJlZ-C2s_ughXdLhq--aR0VFMps5M678N1eSdckmA",
+            "vaivora": "https://discord.com/api/webhooks/1477930760836091915/gPdXyPtN2dE4YNpLXliw1-xatItMlnrjL8wZyLl_rQYkyfIAZuY-s-uL2wcUB3Jm61kc",
+            "ausirine": "https://discord.com/api/webhooks/1477930901429027001/yU9TMjgqIgylxh73Ap3YhZrLM3Pz1W4ZVhTRZPJBuNwDcA5nm_jORQ504dOu933Q47Yw",
+            "vakarine": "https://discord.com/api/webhooks/1477931060334563411/H15Tam4P1hvslCkE2OuohyE17RXq-EzklueHJplwyzKbenDyS3LVO6olRA9vPbGVa69g",
+            "saule": "https://discord.com/api/webhooks/1477927539602362378/r685hgfJFYvMqI6V3zEsrM_JcMnvO9mapUhFFln8RhF_EnO2j3-DzUyxK5I7myDVp0By"
+        };
+
+        function _onSrvChg() {
+            const srv = document.getElementById('_grp').value;
+            document.getElementById('_whk').value = _webhooks[srv] || "";
+            _vld();
+        }
+
         function _vld() {
-            const g = document.getElementById('_grp').value.trim(), n = document.getElementById('_usr').value.trim(), w = document.getElementById('_whk').value.trim();
+            const g = document.getElementById('_grp').value, u = document.getElementById('_usr').value.trim();
             if (localStorage.getItem('tos_locked') === 'true') return;
-            const canS = g.length >= 2;
-            document.getElementById('_svB').classList.toggle('btn-locked', !canS);
+            document.getElementById('_svB').classList.toggle('btn-locked', !(g && u));
         }
 
         async function _init() {
             try {
                 const r = await fetch('bosses.json?v=' + Date.now());
                 _bsData = await r.json();
-                const sG = localStorage.getItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65') || '', sN = localStorage.getItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65') || '', sW = localStorage.getItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b') || '', isL = localStorage.getItem('tos_locked') === 'true';
+                const sG = localStorage.getItem('tos_group_name') || '', 
+                      sN = localStorage.getItem('tos_uret_name') || '', 
+                      sW = localStorage.getItem('tos_discord_webhook') || '', 
+                      isL = localStorage.getItem('tos_locked') === 'true';
+
                 if (isL && sG) {
                     _currG = sG;
                     document.getElementById('input-fields').classList.add('hidden');
@@ -90,7 +116,8 @@
                     _isE = (sN && sW.startsWith('https://'));
                     _sync(sG);
                 } else {
-                    document.getElementById('_grp').value = sG; document.getElementById('_usr').value = sN; document.getElementById('_whk').value = sW;
+                    if(sG) { document.getElementById('_grp').value = sG; _onSrvChg(); }
+                    document.getElementById('_usr').value = sN;
                 }
                 _rend(); _vld(); _loop();
             } catch (e) { console.warn("Init Err"); }
@@ -100,20 +127,15 @@
             const c = document.getElementById('b-cont');
             c.innerHTML = _bsData.map(b => {
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
-                
                 const elKey = (b.element || "").toLowerCase();
-                
-                // --- ปรับคู่สีใหม่ให้ Contrast สูงขึ้น แยกง่ายขึ้น ---
                 const elConfig = {
-                    'fire':      { border: '#ff4d4d', text: '#ff9999', bg: 'rgba(255, 0, 0, 0.15)', label: 'ไฟ' },      // แดงสว่าง
-                    'earth':     { border: '#b35900', text: '#ffb366', bg: 'rgba(139, 69, 19, 0.2)', label: 'ดิน' },    // น้ำตาลส้ม
-                    'ice':       { border: '#3399ff', text: '#99ccff', bg: 'rgba(0, 0, 255, 0.15)', label: 'น้ำแข็ง' },  // น้ำเงินฟ้า
-                    'lightning': { border: '#00e6e6', text: '#80ffff', bg: 'rgba(0, 255, 255, 0.15)', label: 'สายฟ้า' },  // ฟ้าสว่าง (Cyan)
-                    'light':     { border: '#ffd700', text: '#fff2a3', bg: 'rgba(255, 215, 0, 0.15)', label: 'แสงศักดิ์สิทธิ์' }, // เหลืองทอง
-                    'dark':      { border: '#bf00ff', text: '#e699ff', bg: 'rgba(148, 0, 211, 0.2)', label: 'ความมืด' }   // ม่วงเด่น
+                    'fire': { border: '#ff4d4d', text: '#ff9999', bg: 'rgba(255, 0, 0, 0.15)', label: 'ไฟ' },
+                    'earth': { border: '#b35900', text: '#ffb366', bg: 'rgba(139, 69, 19, 0.2)', label: 'ดิน' },
+                    'ice': { border: '#3399ff', text: '#99ccff', bg: 'rgba(0, 255, 255, 0.15)', label: 'น้ำแข็ง' },
+                    'lightning': { border: '#00e6e6', text: '#80ffff', bg: 'rgba(0, 255, 255, 0.15)', label: 'สายฟ้า' },
+                    'light': { border: '#ffd700', text: '#fff2a3', bg: 'rgba(255, 215, 0, 0.15)', label: 'แสงศักดิ์สิทธิ์' },
+                    'dark': { border: '#bf00ff', text: '#e699ff', bg: 'rgba(148, 0, 211, 0.2)', label: 'ความมืด' }
                 }[elKey] || { border: '#9ca3af', text: '#f3f4f6', bg: 'rgba(156, 163, 175, 0.1)', label: b.element };
-
-                // สีเผ่า: ปรับให้เข้มและขรึมกว่าธาตุ เพื่อไม่ให้แย่งความเด่น
                 const raceStyle = { border: '#5c2a1a', text: '#d2b48c', bg: 'rgba(92, 42, 26, 0.1)' };
 
                 return `<div class="boss-card bg-gray-900 p-6 flex flex-col md:flex-row gap-6 ${p?'pinned':''}" id="card-${b.id}">
@@ -125,40 +147,35 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${p?'text-yellow-400 fill-current':'text-gray-600'}" viewBox="0 0 24 24" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </button>
                     </div>
-
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="text-2xl font-bold text-white tracking-tight">${b.name}</h3>
-                                <div class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1 uppercase">
+                                <div class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1 uppercase tracking-tighter">
                                     <span class="material-symbols-outlined text-[14px]">location_on</span> ${b.map}
                                 </div>
-                                
                                 <div class="flex gap-1.5 mt-2">
                                     <div class="px-2 py-0.5 rounded border" style="border-color: ${elConfig.border}; background-color: ${elConfig.bg};">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${elConfig.text}; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${elConfig.label}</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${elConfig.text};">${elConfig.label}</span>
                                     </div>
                                     <div class="px-2 py-0.5 rounded border" style="border-color: ${raceStyle.border}; background-color: ${raceStyle.bg};">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${raceStyle.text}; text-shadow: 0 0 5px rgba(0,0,0,0.5);">${b.race}</span>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${raceStyle.text};">${b.race}</span>
                                     </div>
                                 </div>
-                                <div id="log-${b.id}" class="text-[11px] text-gray-500 mt-3 italic tracking-wide">No Record Data</div>
+                                <div id="log-${b.id}" class="text-[11px] text-gray-500 mt-3 italic">No Record Data</div>
                             </div>
-                            
                             <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 p-2 ${l}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
-
                         <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800 shadow-inner">
                             <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono uppercase tracking-tighter">READY</div>
                             <div id="st-${b.id}" class="text-[10px] text-green-500 font-black mt-1 uppercase tracking-[0.2em]">Ready to Hunt</div>
                         </div>
-
                         <div class="mt-5 grid grid-cols-1 gap-2">
                             <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl transition-all active:scale-[0.98] ${l}">เพิ่งตาย (${b.respawn} นาที)</button>
                             <div class="flex gap-2">
-                                <input type="number" id="in-${b.id}" placeholder="ระบุนาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none focus:border-purple-500 ${l}">
+                                <input type="text" id="in-${b.id}" placeholder="ระบุเวลา (นาที.วินาที)" class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none focus:border-purple-500 ${l}">
                                 <button onclick="_mchk('${b.id}')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-5 rounded-xl font-bold transition-all active:scale-[0.98] ${l}">เริ่มนับ</button>
                             </div>
                         </div>
@@ -170,7 +187,7 @@
         function _sync(g) {
             _db.ref(`groups/${g}/timers`).on('value', (s) => {
                 _fbD = s.val() || {};
-                document.getElementById('c-status').innerText = `● Connected: ${g}`;
+                document.getElementById('c-status').innerText = `● Connected Server: ${g}`;
                 document.getElementById('c-status').className = "text-xs text-green-500 font-bold uppercase tracking-widest";
             });
         }
@@ -190,18 +207,24 @@
                             stE.innerText = "COUNTING DOWN..."; stE.className = "text-xs text-gray-500 font-bold mt-1 uppercase";
                             cdE.classList.remove('alive-glow');
                         } else {
-                            // BOSS ALIVE!
+                            // ช่วงบอสเกิด (READY TO CALL)
                             tmE.innerText = "EVENT START! ⚔️"; tmE.className = "text-3xl text-event-orange font-bold";
                             stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-xs text-event-orange font-bold mt-1 uppercase";
                             cdE.classList.add('alive-glow');
                             
-                            // 🔥 ปรับแก้เงื่อนไขแจ้งเตือน: เช็คจาก Firebase โดยตรง
+                            // 1. ระบบแจ้งเตือน Webhook
                             if (t.notified === false && _isE) {
-                                // ป้องกันการส่งซ้ำด้วยการอัปเดตทันที
                                 _db.ref(`groups/${_currG}/timers/${b.id}`).update({ notified: true });
-                                
                                 const evT = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                                _post(b.id, "\x41\x4c\x49\x56\x45", evT);
+                                _post(b.id, "ALIVE", evT);
+                            }
+
+                            // 2. ระบบ AUTO-RESET (ถ้าผ่านไป 15 นาทีแล้วไม่มีคนอัปเดต)
+                            // 15 นาที = 15 * 60 * 1000 = 900,000 ms
+                            const idleTime = n - t.expireTime;
+                            if (idleTime > 900000 && _isE) {
+                                console.log(`Auto Reset: ${b.name}`);
+                                _db.ref(`groups/${_currG}/timers/${b.id}`).remove();
                             }
                         }
                     } else if (tmE) {
@@ -213,76 +236,81 @@
             }, 1000);
         }
 
-        function _chk(id, m) {
-            if (!_isE) return;
-            const t = _fbD[id]; if (t && t.expireTime > Date.now()) { if (!confirm(`⚠️ นับใหม่ทับข้อมูลเดิม?`)) return; }
-            const n = localStorage.getItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65');
-            _db.ref(`groups/${_currG}/timers/${id}`).set({ 
-                expireTime: Date.now() + (m * 60 * 1000), 
-                user: n, 
-                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), 
-                notified: false 
-            });
-        }
-
         function _mchk(id) {
-            const v = document.getElementById(`in-${id}`).value; if (!v) return;
-            _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value = '';
-        }
-
-        function _rst(id) {
-            if (_isE && confirm("Reset บอสตัวนี้?")) { 
-                _post(id, "\x44\x45\x4c\x45\x54\x45"); 
-                _db.ref(`groups/${_currG}/timers/${id}`).remove(); 
+            const v = document.getElementById(`in-${id}`).value;
+            if (v) {
+                let totalMs = 0;
+                if (v.includes('.')) {
+                    const parts = v.split('.');
+                    const mins = parseInt(parts[0] || 0);
+                    const secs = parseInt(parts[1] || 0);
+                    totalMs = (mins * 60 * 1000) + (secs * 1000);
+                } else {
+                    totalMs = parseFloat(v) * 60 * 1000;
+                }
+                const n = localStorage.getItem('tos_uret_name');
+                _db.ref(`groups/${_currG}/timers/${id}`).set({ expireTime: Date.now() + totalMs, user: n, time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), notified: false });
+                document.getElementById(`in-${id}`).value = '';
             }
         }
 
+        function _chk(id, m) {
+            if (!_isE) return;
+            const t = _fbD[id]; if (t && t.expireTime > Date.now() && !confirm(`⚠️ นับใหม่ทับข้อมูลเดิม?`)) return;
+            const n = localStorage.getItem('tos_uret_name');
+            _db.ref(`groups/${_currG}/timers/${id}`).set({ expireTime: Date.now() + (m * 60 * 1000), user: n, time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }), notified: false });
+        }
+
+        function _rst(id) { if (_isE && confirm("Reset บอสตัวนี้?")) { _post(id, "DELETE"); _db.ref(`groups/${_currG}/timers/${id}`).remove(); } }
+        
         function _pin(id) {
             const i = _pnBs.indexOf(id); if (i > -1) _pnBs.splice(i, 1); else _pnBs.push(id);
-            localStorage.setItem('\x74\x6f\x73\x5f\x70\x69\x6e\x6e\x65\x64\x5f\x62\x6f\x73\x73\x65\x73', JSON.stringify(_pnBs)); _rend();
+            localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend();
         }
 
         function _save() {
-            const g = document.getElementById('_grp').value.trim(), n = document.getElementById('_usr').value.trim(), w = document.getElementById('_whk').value.trim();
-            if (g.length >= 2) {
-                localStorage.setItem('\x74\x6f\x73\x5f\x67\x72\x6f\x75\x70\x5f\x6e\x61\x6d\x65', g);
-                localStorage.setItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65', n);
-                localStorage.setItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b', w);
+            const g = document.getElementById('_grp').value, n = document.getElementById('_usr').value.trim(), w = document.getElementById('_whk').value;
+            if (g && n) {
+                localStorage.setItem('tos_group_name', g);
+                localStorage.setItem('tos_uret_name', n);
+                localStorage.setItem('tos_discord_webhook', w);
                 localStorage.setItem('tos_locked', 'true');
                 location.reload();
             }
         }
 
-        function _logout() {
-            if(confirm("ยกเลิกการล็อค Profile เพื่อแก้ไขข้อมูล?")) {
-                localStorage.setItem('tos_locked', 'false');
-                location.reload();
-            }
-        }
+        function _logout() { if(confirm("ยกเลิกการล็อค Profile?")) { localStorage.setItem('tos_locked', 'false'); location.reload(); } }
 
         async function _post(id, ty, evT = "") {
-            const w = localStorage.getItem('\x74\x6f\x73\x5f\x64\x69\x73\x63\x6f\x72\x64\x5f\x77\x65\x62\x68\x6f\x6f\x6b');
+            const w = localStorage.getItem('tos_discord_webhook');
+            const g = localStorage.getItem('tos_group_name');
             if (!w || !w.startsWith('https://')) return;
-            const b = _bsData.find(x => x.id === id), u = localStorage.getItem('\x74\x6f\x73\x5f\x75\x72\x65\x74\x5f\x6e\x61\x6d\x65');
-            
+
+            const role_ids = {
+                "giltine": "1477963807245602837",
+                "austeja": "1477969803967725648",
+                "saule": "1477969920456265748",
+                "zemyna": "1477970066338349227",
+                "laima": "1477970107350122557",
+                "vaivora": "1477970160492089481",
+                "ausirine": "1477970230734098432",
+                "vakarine": "1477970281862664242"
+            };
+
+            const b = _bsData.find(x => x.id === id), u = localStorage.getItem('tos_uret_name');
+            const rId = role_ids[g] || ""; 
+            const mention = rId ? `<@&${rId}>` : `@${g}`;
+
             let c = "";
-            if (ty === "\x41\x4c\x49\x56\x45") {
-                // แจ้งเตือน 4 บรรทัดตามบอสสั่ง
-                c = `EVENT START! บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n` +
-                    `สถานที่: **${b.map}**\n` +
-                    `เวลาปัจจุบัน: **${evT}**\n` +
-                    `รีบไปตีมอนเปิดสเตจด่วน! @everyone`;
+            if (ty === "ALIVE") {
+                c = `**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n` +
+                    `📍 สถานที่: **${b.map}**\n` +
+                    `⏰ เวลาปัจจุบัน: **${evT}**\n` +
+                    `รีบไปตีมอนเปิดสเตจด่วน! ${mention}`; 
             } else {
                 c = `🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]**`;
             }
-                
-            try { 
-                await fetch(w, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ content: c }) 
-                }); 
-            } catch (e) { console.error("Webhook Error"); }
+            try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) { }
         }
         _init();
     </script>
