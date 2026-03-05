@@ -195,7 +195,7 @@
     "map": "Delmore Outskirts",
     "element": "Dark",
     "race": "Devil",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_taumas.png"
+    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bramble.png"
   },
   {
     "id": "strong_taumas",
@@ -206,7 +206,7 @@
     "map": "Uskis Arable Land",
     "element": "Earth",
     "race": "Beast",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_taumas.png"
+    "img": "https://img5.pic.in.th/file/secure-sv1/Taumus.png"
   },
   {
     "id": "cowardly_manticen",
@@ -261,7 +261,7 @@
     "map": "Zachariel Crossroads",
     "element": "Dark",
     "race": "Aberration",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_taumas.png"
+    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bearkaras.png"
   },
   {
     "id": "strong_thumlord",
@@ -272,7 +272,7 @@
     "map": "Royal Mausoleum 1F",
     "element": "Dark",
     "race": "Aberration",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_taumas.png"
+    "img": "https://img5.pic.in.th/file/secure-sv1/Tomb-Lord.png"
   },
   {
     "id": "strong_gorkas",
@@ -283,7 +283,7 @@
     "map": "Royal Mausoleum 2F",
     "element": "Dark",
     "race": "Aberration",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/icon_item_nothing.png"
+    "img": "https://img2.pic.in.th/Gorkas.png"
   },
   {
     "id": "angry_rexipher",
@@ -327,7 +327,7 @@
     "map": "Demon Prison District 1",
     "element": "Dark",
     "race": "Aberration",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_taumas.png"
+    "img": "https://static.wikia.nocookie.net/treeofsavior/images/f/f2/CHAR_Blut.png/revision/latest/scale-to-width-down/300?cb=20190301044558"
   },
   {
     "id": "cowardly_nuaele",
@@ -338,14 +338,14 @@
     "map": "Demon Prison District 3",
     "element": "Dark",
     "race": "Devil",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_nuaelle.png"
+    "img": "https://tos.guru/assets/icons/boss_nuaelle.png"
   },
   {
     "id": "strong_dionysus",
     "name": "Strong Dionysus",
     "lv": 74,
     "ep": 8,
-    "respawn": 120,
+    "respawn": 126,
     "map": "Demon Prison District 4",
     "element": "Dark",
     "race": "Devil",
