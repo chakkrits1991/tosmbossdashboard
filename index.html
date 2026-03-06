@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.4.1 - Optimized</title>
+    <title>TOS-M Tracker V1.4.1 - Multi-Channel Optimized</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -24,7 +24,13 @@
         .log-container { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 1.5rem; overflow: hidden; }
         .log-table th { background: #0f172a; color: #94a3b8; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem; }
         .log-table td { padding: 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.8rem; }
-        .log-table tr:last-child td { border-bottom: none; }
+        .ch-indicator-wrap { position: absolute; top: -5px; right: -5px; display: flex; flex-direction: column; gap: 3px; z-index: 20; background: rgba(0,0,0,0.6); padding: 3px; border-radius: 8px; border: 1px solid #334155; backdrop-filter: blur(4px); }
+        .ch-dot { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; border: 1px solid #334155; color: #475569; transition: all 0.3s; cursor: pointer; }
+        .ch-dot.counting { background: #1e3a8a; color: #60a5fa; border-color: #3b82f6; }
+        .ch-dot.alive { background: #f97316; color: white; border-color: #fdba74; animation: blink-fast 1s infinite; box-shadow: 0 0 8px #f97316; }
+        @keyframes blink-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .ch-btn { border-radius: 10px; font-size: 11px; font-weight: bold; transition: all 0.2s; border: 1px solid #334155; color: #94a3b8; }
+        .ch-btn.active { background-color: #f59e0b; color: #000; border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
         select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem; }
         .hidden { display: none !important; }
     </style>
@@ -72,9 +78,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2 justify-start py-2" id="ep-filters">
-            <button onclick="_filterEP('all')" class="filter-btn active" id="f-all">
-                All EP <span id="badge-all" class="ep-badge hidden">0</span>
-            </button>
+            <button onclick="_filterEP('all')" class="filter-btn active" id="f-all">All EP <span id="badge-all" class="ep-badge hidden">0</span></button>
         </div>
     </div>
 
@@ -87,7 +91,7 @@
         <div class="log-container">
             <table class="w-full text-left log-table">
                 <thead>
-                    <tr><th>Boss Name</th><th>EP</th><th>By</th><th>Time</th></tr>
+                    <tr><th>Boss Name</th><th>CH</th><th>By</th><th>Time</th></tr>
                 </thead>
                 <tbody id="log-body">
                     <tr><td colspan="4" class="text-center text-gray-600 py-10">Loading records...</td></tr>
@@ -102,11 +106,11 @@
         const _db = firebase.database();
         
         let _bsData = [], _pnBs = JSON.parse(localStorage.getItem('tos_pinned_bosses') || '[]');
-        let _fbD = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
+        let _fbD = {}, _fbLogs = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
+        let _selectedCh = {};
 
         let _webhooks = {};
         _db.ref('config/webhooks').once('value', s => { _webhooks = s.val() || {}; });
-
         _db.ref(".info/serverTimeOffset").on("value", (s) => { _srvOfst = s.val() || 0; });
 
         function _filterEP(ep) {
@@ -119,48 +123,37 @@
         function _vld() {
             const g = document.getElementById('_grp').value, u = document.getElementById('_usr').value.trim();
             if (localStorage.getItem('tos_locked') === 'true') return;
-            // แก้ไขเงื่อนไข: ถ้าพิมพ์ /testadmin จะให้กดปุ่มได้เลยโดยไม่ต้องเลือก Server
             document.getElementById('_svB').classList.toggle('btn-locked', !( (g && u) || u === "/testadmin" ));
         }
 
         async function _init() {
             const filterCont = document.getElementById('ep-filters');
-            for(let i=1; i<=11; i++){
-                filterCont.innerHTML += `<button onclick="_filterEP('${i}')" class="filter-btn" id="f-${i}">EP ${i} <span id="badge-${i}" class="ep-badge hidden">0</span></button>`;
-            }
+            for(let i=1; i<=11; i++) filterCont.innerHTML += `<button onclick="_filterEP('${i}')" class="filter-btn" id="f-${i}">EP ${i} <span id="badge-${i}" class="ep-badge hidden">0</span></button>`;
 
             try {
                 const r = await fetch('bosses.json?v=' + Date.now());
                 _bsData = await r.json();
-                const sG = localStorage.getItem('tos_group_name') || '', 
-                      sN = localStorage.getItem('tos_uret_name') || '', 
-                      isL = localStorage.getItem('tos_locked') === 'true';
+                const sG = localStorage.getItem('tos_group_name'), sN = localStorage.getItem('tos_uret_name'), isL = localStorage.getItem('tos_locked') === 'true';
 
                 if (isL && sG) {
-                    _currG = sG;
+                    _currG = sG; _isE = true;
                     document.getElementById('input-fields').classList.add('hidden');
                     document.getElementById('locked-fields').classList.remove('hidden');
-                    document.getElementById('display-usr').innerText = sN || "Guest";
+                    document.getElementById('display-usr').innerText = sN;
                     document.getElementById('display-grp').innerText = sG;
-                    _isE = !!sN;
                     _sync(sG);
-                } else if(sG) { 
-                    document.getElementById('_grp').value = sG; 
-                }
+                } else if(sG) { document.getElementById('_grp').value = sG; }
                 _rend(); _vld(); _loop();
-            } catch (e) { console.warn("Init Err", e); }
+            } catch (e) { console.warn(e); }
         }
 
         function _rend() {
             const c = document.getElementById('b-cont');
-            const filtered = _bsData.filter(b => {
-                const isPinned = _pnBs.includes(`card-${b.id}`);
-                const matchesEP = (_curEP === "all" || String(b.ep) === _curEP);
-                return isPinned || matchesEP;
-            });
+            const filtered = _bsData.filter(b => _pnBs.includes(`card-${b.id}`) || (_curEP === "all" || String(b.ep) === _curEP));
             
             c.innerHTML = filtered.map(b => {
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
+                const curCh = _selectedCh[b.id] || 1;
                 const elKey = (b.element || "").toLowerCase();
                 const elConfig = {
                     'fire': { border: '#ff4d4d', text: '#ff9999', bg: 'rgba(255, 0, 0, 0.15)', label: 'ไฟ' },
@@ -173,10 +166,11 @@
 
                 return `<div class="boss-card bg-gray-900 p-6 flex flex-col md:flex-row gap-6 ${p?'pinned':''}" id="card-${b.id}">
                     <div class="relative w-full md:w-36 h-36 flex-shrink-0 mx-auto">
-                        <div class="w-full h-full rounded-2xl overflow-hidden border border-gray-800 shadow-lg">
-                            <img src="${b.img}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                        <img src="${b.img}" class="w-full h-full object-cover rounded-2xl border border-gray-800 shadow-lg" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="absolute -bottom-2 right-0 bg-yellow-600 text-black text-[10px] font-black px-2 py-0.5 rounded-lg shadow-lg z-10">EP ${b.ep}</div>
+                        <div class="ch-indicator-wrap">
+                            ${[1,2,3].map(ch => `<div id="mon-${b.id}-${ch}" onclick="_setCh('${b.id}', ${ch})" class="ch-dot">C${ch}</div>`).join('')}
                         </div>
-                        <div class="absolute -bottom-2 right-0 bg-yellow-600 text-black text-[10px] font-black px-2 py-0.5 rounded-lg shadow-lg">EP ${b.ep || '??'}</div>
                         <button onclick="_pin('card-${b.id}')" class="absolute -top-2 -left-2 bg-gray-800 rounded-full p-1 border border-gray-700 z-10">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ${p?'text-yellow-400 fill-current':'text-gray-600'}" viewBox="0 0 24 24" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </button>
@@ -184,36 +178,36 @@
                     <div class="flex-1">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="text-2xl font-bold text-white tracking-tight">${b.name}</h3>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-yellow-500 text-xs font-bold uppercase tracking-widest">LV. ${b.lv || '???'}</span>
-                                    <span class="text-red-500 text-[10px] font-bold flex items-center gap-0.5 uppercase tracking-tighter">
-                                        <span class="material-symbols-outlined text-[12px]">location_on</span> ${b.map}
-                                    </span>
-                                </div>
-                                <div class="flex gap-1.5 mt-3">
+                                <h3 class="text-2xl font-bold text-white leading-tight">
+                                    ${b.name} <span class="text-lg text-yellow-400 font-black ml-1">LV.${b.lv}</span>
+                                </h3>
+                                <div class="text-[10px] text-red-500 font-bold mt-1 uppercase">📍 ${b.map}</div>
+                                <div class="flex gap-1.5 mt-2">
                                     <div class="px-2 py-0.5 rounded border" style="border-color: ${elConfig.border}; background-color: ${elConfig.bg};">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: ${elConfig.text};">${elConfig.label}</span>
+                                        <span class="text-[9px] font-bold uppercase tracking-wider" style="color: ${elConfig.text};">${elConfig.label}</span>
                                     </div>
                                     <div class="px-2 py-0.5 rounded border" style="border-color: #5c2a1a; background-color: rgba(92, 42, 26, 0.1);">
-                                        <span class="text-[10px] font-bold uppercase tracking-wider" style="color: #d2b48c;">${b.race}</span>
+                                        <span class="text-[9px] font-bold uppercase tracking-wider" style="color: #d2b48c;">${b.race}</span>
                                     </div>
                                 </div>
-                                <div id="log-${b.id}" class="text-[11px] text-gray-500 mt-3 italic">No Record Data</div>
+                                <div id="log-${b.id}" class="text-[11px] text-blue-400 mt-3 italic font-bold">CH 1: No Data</div>
                             </div>
-                            <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 p-2 ${l}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
+                            <button onclick="_rst('${b.id}')" class="text-gray-600 hover:text-red-500 ${l}"><span class="material-symbols-outlined">close</span></button>
                         </div>
                         <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800 shadow-inner">
                             <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono uppercase tracking-tighter">READY</div>
-                            <div id="st-${b.id}" class="text-[10px] text-green-500 font-black mt-1 uppercase tracking-[0.2em]">Ready to Hunt</div>
+                            <div id="st-${b.id}" class="text-[10px] text-green-500 font-black mt-1 uppercase tracking-widest">Ready to Hunt</div>
                         </div>
-                        <div class="mt-5 grid grid-cols-1 gap-2">
-                            <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold py-3 rounded-2xl transition-all active:scale-[0.98] ${l}">เพิ่งตาย (${b.respawn} นาที)</button>
-                            <div class="flex gap-2">
-                                <input type="number" id="in-${b.id}" placeholder="ระบุนาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none focus:border-purple-500 ${l}">
-                                <button onclick="_mchk('${b.id}')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs px-5 rounded-xl font-bold transition-all active:scale-[0.98] ${l}">เริ่มนับ</button>
+                        <div class="mt-4">
+                            <div class="flex gap-1 mb-2 justify-center">
+                                ${[1, 2, 3].map(ch => `<button id="btn-ch-${b.id}-${ch}" onclick="_setCh('${b.id}', ${ch})" class="ch-btn px-4 py-1 ${ch===curCh?'active':''} ${l}">CH ${ch}</button>`).join('')}
+                            </div>
+                            <div class="grid grid-cols-1 gap-2">
+                                <button onclick="_chk('${b.id}', ${b.respawn})" class="bg-blue-700 py-3 rounded-2xl text-xs font-bold text-white shadow-lg active:scale-95 transition-all ${l}">เพิ่งตาย (${b.respawn} น.)</button>
+                                <div class="flex gap-2">
+                                    <input type="number" id="in-${b.id}" placeholder="ระบุนาที..." class="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2 text-xs text-white text-center outline-none ${l}">
+                                    <button onclick="_mchk('${b.id}')" class="bg-purple-600 px-5 rounded-xl text-xs font-bold text-white ${l}">เริ่มนับ</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -221,166 +215,106 @@
             }).join('');
         }
 
-        function _sync(g) {
-            _db.ref(`groups/${g}/timers`).on('value', (s) => {
-                _fbD = s.val() || {};
-                document.getElementById('c-status').innerText = `● Connected Server: ${g}`;
-                document.getElementById('c-status').className = "text-xs text-green-500 font-bold uppercase tracking-widest";
-                _updLog();
+        function _setCh(id, ch) {
+            _selectedCh[id] = ch;
+            [1, 2, 3].forEach(i => {
+                const btn = document.getElementById(`btn-ch-${id}-${i}`);
+                if (btn) btn.className = `ch-btn px-4 py-1 ${i===ch?'active':''}`;
             });
+            _updT(id);
+        }
+
+        function _sync(g) {
+            _db.ref(`groups/${g}/timers`).on('value', s => { _fbD = s.val() || {}; });
+            _db.ref(`groups/${g}/logs`).orderByChild('timestamp').limitToLast(10).on('value', s => { _fbLogs = s.val() || {}; _updLog(); });
+            document.getElementById('c-status').innerText = `● Connected Server: ${g}`;
+            document.getElementById('c-status').className = "text-xs text-green-500 font-bold uppercase tracking-widest";
         }
 
         function _updLog() {
             const body = document.getElementById('log-body');
-            const sorted = Object.entries(_fbD)
-                .map(([id, data]) => ({ id, ...data }))
-                .sort((a, b) => (b.expireTime || 0) - (a.expireTime || 0))
-                .slice(0, 10);
+            const sorted = Object.entries(_fbLogs).map(([k,v])=>v).sort((a,b)=>b.timestamp-a.timestamp);
+            body.innerHTML = sorted.length ? sorted.map(i => `<tr><td class="font-bold text-white">${i.bossName}</td><td class="text-yellow-500 font-bold italic">CH ${i.ch}</td><td class="text-blue-400 font-bold">${i.user}</td><td class="text-gray-400 font-mono text-[10px]">${i.time}</td></tr>`).join('') : '<tr><td colspan="4" class="text-center py-10 text-gray-600 italic">No Recent Records</td></tr>';
+        }
 
-            if (sorted.length === 0) {
-                body.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-6">No records found.</td></tr>';
-                return;
+        function _updT(id) {
+            const now = Date.now() + _srvOfst;
+            const ch = _selectedCh[id] || 1;
+            const t = _fbD[`${id}_ch${ch}`];
+            const tmE = document.getElementById(`tmr-${id}`), stE = document.getElementById(`st-${id}`), cdE = document.getElementById(`card-${id}`), lgE = document.getElementById(`log-${id}`);
+            [1,2,3].forEach(cNum => {
+                const mon = document.getElementById(`mon-${id}-${cNum}`);
+                if(mon) {
+                    const ct = _fbD[`${id}_ch${cNum}`];
+                    if(ct) {
+                        const rSec = (ct.expireTime - now) / 1000;
+                        mon.className = (rSec <= 0) ? "ch-dot alive" : "ch-dot counting";
+                    } else { mon.className = "ch-dot"; }
+                }
+            });
+            if (t && tmE) {
+                const r = Math.floor((t.expireTime - now) / 1000);
+                lgE.innerText = `CH ${ch}: By ${t.user} (${t.time})`;
+                if (r > 0) {
+                    let h=Math.floor(r/3600), m=Math.floor((r%3600)/60), s=r%60;
+                    tmE.innerText = `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                    tmE.className = "text-4xl text-yellow-400 font-mono";
+                    stE.innerText = `CH ${ch} - COUNTING DOWN...`; stE.className = "text-[10px] text-gray-500 font-black mt-1 uppercase";
+                    cdE.classList.remove('alive-glow');
+                } else {
+                    tmE.innerText = `CH ${ch} ALIVE! ⚔️`; tmE.className = "text-3xl text-event-orange font-bold animate-pulse";
+                    stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-[10px] text-event-orange font-black mt-1 uppercase";
+                    cdE.classList.add('alive-glow');
+                    if (!t.notified && _isE) { 
+                        _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).update({ notified: true }); 
+                        _post(id, "ALIVE", ch); 
+                    }
+                }
+            } else if (tmE) {
+                tmE.innerText = "READY"; tmE.className = "text-4xl text-yellow-400 font-mono";
+                stE.innerText = `CH ${ch} - Ready to Hunt`; stE.className = "text-[10px] text-green-500 font-black mt-1 uppercase";
+                lgE.innerText = `CH ${ch}: No Data`; cdE.classList.remove('alive-glow');
             }
-
-            body.innerHTML = sorted.map(item => {
-                const b = _bsData.find(x => x.id === item.id);
-                if (!b) return '';
-                return `<tr>
-                    <td class="font-bold text-white">${b.name}</td>
-                    <td><span class="bg-gray-700 px-2 py-0.5 rounded text-[10px]">EP ${b.ep}</span></td>
-                    <td class="text-blue-400 font-bold">${item.user || 'Unknown'}</td>
-                    <td class="text-gray-400 font-mono text-[10px]">${item.time || '-'}</td>
-                </tr>`;
-            }).join('');
         }
 
         function _loop() {
             setInterval(() => {
-                const nowServer = Date.now() + _srvOfst;
-                const epCounts = { all: 0 };
-                for(let i=1; i<=11; i++) epCounts[i] = 0;
-
+                const now = Date.now() + _srvOfst; const epCounts = { all: 0 };
                 _bsData.forEach(b => {
-                    const t = _fbD[b.id], 
-                          tmE = document.getElementById(`tmr-${b.id}`), 
-                          stE = document.getElementById(`st-${b.id}`), 
-                          cdE = document.getElementById(`card-${b.id}`), 
-                          lgE = document.getElementById(`log-${b.id}`);
-                    
-                    if (t) {
-                        const r = Math.floor((t.expireTime - nowServer) / 1000);
-                        const isAlive = (r <= 0);
-
-                        if (isAlive) {
-                            epCounts.all++;
-                            if (b.ep) epCounts[b.ep]++;
-                        }
-
-                        if (tmE) {
-                            lgE.innerText = `By: ${t.user} (${t.time})`;
-                            if (!isAlive) {
-                                let h=Math.floor(r/3600), m=Math.floor((r%3600)/60), s=r%60;
-                                tmE.innerText = `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-                                tmE.className = "text-4xl text-yellow-400 font-mono uppercase";
-                                stE.innerText = "COUNTING DOWN..."; stE.className = "text-xs text-gray-500 font-bold mt-1 uppercase";
-                                cdE.classList.remove('alive-glow');
-                            } else {
-                                tmE.innerText = "EVENT START! ⚔️"; tmE.className = "text-3xl text-event-orange font-bold";
-                                stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-xs text-event-orange font-bold mt-1 uppercase";
-                                cdE.classList.add('alive-glow');
-                                if (t.notified === false && _isE) {
-                                    _db.ref(`groups/${_currG}/timers/${b.id}`).update({ notified: true });
-                                    _post(b.id, "ALIVE");
-                                }
-                            }
-                        }
-                    } else if (tmE) {
-                        tmE.innerText = "READY"; tmE.className = "text-4xl text-yellow-400 font-mono uppercase";
-                        stE.innerText = "Ready to Hunt"; stE.className = "text-xs text-green-500 font-bold mt-1 uppercase";
-                        cdE.classList.remove('alive-glow'); lgE.innerText = "No Data";
-                    }
+                    _updT(b.id);
+                    let hasAlive = false;
+                    [1,2,3].forEach(c => { if(_fbD[`${b.id}_ch${c}`] && (_fbD[`${b.id}_ch${c}`].expireTime - now) <= 0) hasAlive = true; });
+                    if(hasAlive) { epCounts.all++; if(b.ep) epCounts[b.ep] = (epCounts[b.ep]||0)+1; }
                 });
-
-                Object.keys(epCounts).forEach(key => {
-                    const badge = document.getElementById(`badge-${key}`);
-                    if (badge) {
-                        badge.innerText = epCounts[key];
-                        badge.classList.toggle('hidden', epCounts[key] === 0);
-                    }
-                });
+                Object.keys(epCounts).forEach(k => { const b = document.getElementById(`badge-${k}`); if(b) { b.innerText = epCounts[k]; b.classList.toggle('hidden', epCounts[k]===0); } });
             }, 1000);
         }
 
         function _chk(id, m) {
             if (!_isE) return;
-            const t = _fbD[id]; 
-            const nowServer = Date.now() + _srvOfst;
-            if (t && t.expireTime > nowServer && !confirm(`⚠️ นับใหม่ทับข้อมูลเดิม?`)) return;
-            
-            const n = localStorage.getItem('tos_uret_name');
-            const nowTH = new Date(nowServer).toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit' });
-            
-            _db.ref(`groups/${_currG}/timers/${id}`).set({ 
-                expireTime: nowServer + (m * 60 * 1000), 
-                user: n, 
-                time: nowTH, 
-                notified: false 
-            });
+            const ch = _selectedCh[id] || 1;
+            const now = Date.now() + _srvOfst, n = localStorage.getItem('tos_uret_name'), b = _bsData.find(x=>x.id===id);
+            const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
+            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ expireTime: now+(m*60*1000), user: n, time: timeStr, notified: false, ch: ch });
+            _db.ref(`groups/${_currG}/logs`).push({ bossName: b.name, ch: ch, user: n, time: timeStr, timestamp: now });
         }
 
-        function _mchk(id) {
-            const v = document.getElementById(`in-${id}`).value; 
-            if (v) { _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value = ''; }
-        }
-
-        function _rst(id) { if (_isE && confirm("Reset บอสตัวนี้?")) { _post(id, "DELETE"); _db.ref(`groups/${_currG}/timers/${id}`).remove(); } }
-        
-        function _pin(id) {
-            const i = _pnBs.indexOf(id); if (i > -1) _pnBs.splice(i, 1); else _pnBs.push(id);
-            localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend();
-        }
-
+        function _mchk(id) { const v = document.getElementById(`in-${id}`).value; if(v){ _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value=''; } }
+        function _rst(id) { const ch = _selectedCh[id] || 1; if(_isE && confirm(`Reset CH ${ch} ของบอสตัวนี้?`)) { _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).remove(); } }
+        function _pin(id) { const i = _pnBs.indexOf(id); i>-1 ? _pnBs.splice(i,1) : _pnBs.push(id); localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend(); }
         function _save() {
-            let g = document.getElementById('_grp').value;
-            let n = document.getElementById('_usr').value.trim();
-            
-            // --- ส่วนทางเข้าลับ (Secret Gate) ---
-            if (n === "/testadmin") { 
-                g = "test_server"; // บังคับเปลี่ยน Server
-                n = "Admin_Tester"; // บังคับเปลี่ยนชื่อ
-            }
-            // ----------------------------------
-
-            if (g && n) {
-                localStorage.setItem('tos_group_name', g);
-                localStorage.setItem('tos_uret_name', n);
-                localStorage.setItem('tos_locked', 'true');
-                location.reload();
-            }
+            let g = document.getElementById('_grp').value, n = document.getElementById('_usr').value.trim();
+            if (n === "/testadmin") { g = "test_server"; n = "Admin_Tester"; }
+            if (g && n) { localStorage.setItem('tos_group_name', g); localStorage.setItem('tos_uret_name', n); localStorage.setItem('tos_locked', 'true'); location.reload(); }
         }
+        function _logout() { if(confirm("Logout Profile?")) { localStorage.clear(); location.reload(); } }
 
-        function _logout() { if(confirm("ยกเลิกการล็อค Profile?")) { localStorage.setItem('tos_locked', 'false'); location.reload(); } }
-
-        async function _post(id, ty) {
-            const g = localStorage.getItem('tos_group_name');
-            const w = _webhooks[g]; 
-            if (!w) return;
-
-            const role_ids = { "giltine": "1477963807245602837", "austeja": "1477969803967725648", "saule": "1477969920456265748", "zemyna": "1477970066338349227", "laima": "1477970107350122557", "vaivora": "1477970160492089481", "ausirine": "1477970230734098432", "vakarine": "1477970281862664242" };
-            const b = _bsData.find(x => x.id === id), u = localStorage.getItem('tos_uret_name');
-            const rId = role_ids[g] || ""; 
-            const mention = rId ? `<@&${rId}>` : `@${g}`;
-            const nowServer = Date.now() + _srvOfst;
-            const nowTH = new Date(nowServer).toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            // เพิ่ม Prefix [TEST] เฉพาะเวลาอยู่ใน Server ทดสอบ
-            let prefix = (g === "test_server") ? "🧪 **[TEST MESSAGE]** " : "";
-
-            let c = (ty === "ALIVE") 
-                ? `${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${b.map}**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}`
-                : `${prefix}🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]** (Lv. ${b.lv} | EP ${b.ep})`;
-
-            try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) { }
+        async function _post(id, ty, ch) {
+            const w = _webhooks[_currG]; if (!w) return;
+            const b = _bsData.find(x => x.id === id);
+            const prefix = (_currG === "test_server") ? "🧪 **[TEST]** " : "";
+            const content = `${prefix}**BOSS ALIVE!** [${b.name}] **(CH ${ch})** เกิดแล้วที่ [${b.map}] ⚔️`;
+            try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }); } catch (e) {}
         }
         _init();
     </script>
