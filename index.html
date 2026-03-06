@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.4.1 - Multi-Channel Optimized</title>
+    <title>TOS-M Tracker V1.4.2 - Auto-Clear Update</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -38,7 +38,7 @@
 <body class="p-4 md:p-8">
 
     <header class="max-w-2xl mx-auto text-center mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.4.1</h1>
+        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.4.2</h1>
         <div id="c-status" class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Disconnected</div>
     </header>
 
@@ -179,7 +179,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="text-2xl font-bold text-white leading-tight">
-                                    ${b.name} <span class="text-lg text-yellow-400 font-black ml-1">LV.${b.lv}</span>
+                                    ${b.name} <span class="text-xl text-yellow-400 font-black ml-1">LV.${b.lv}</span>
                                 </h3>
                                 <div class="text-[10px] text-red-500 font-bold mt-1 uppercase">📍 ${b.map}</div>
                                 <div class="flex gap-1.5 mt-2">
@@ -242,6 +242,7 @@
             const ch = _selectedCh[id] || 1;
             const t = _fbD[`${id}_ch${ch}`];
             const tmE = document.getElementById(`tmr-${id}`), stE = document.getElementById(`st-${id}`), cdE = document.getElementById(`card-${id}`), lgE = document.getElementById(`log-${id}`);
+            
             [1,2,3].forEach(cNum => {
                 const mon = document.getElementById(`mon-${id}-${cNum}`);
                 if(mon) {
@@ -249,9 +250,15 @@
                     if(ct) {
                         const rSec = (ct.expireTime - now) / 1000;
                         mon.className = (rSec <= 0) ? "ch-dot alive" : "ch-dot counting";
+                        
+                        // Auto-Reset Logic: If alive more than 15 minutes (900s)
+                        if (rSec < -900 && _isE) {
+                            _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove();
+                        }
                     } else { mon.className = "ch-dot"; }
                 }
             });
+
             if (t && tmE) {
                 const r = Math.floor((t.expireTime - now) / 1000);
                 lgE.innerText = `CH ${ch}: By ${t.user} (${t.time})`;
