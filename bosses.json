@@ -4,8 +4,9 @@
     "name": "Cowardly Red Bube Warrior",
     "lv": 7,
     "ep": 1,
-    "respawn": 120,
+    "respawn": 150,
     "map": "Siauliai Miners Village",
+    "map_ext": "EP1-7",
     "element": "Fire",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/mon_goblin_warrior_red.png"
@@ -17,8 +18,9 @@
     "ep": 1,
     "respawn": 120,
     "map": "Crystal Mine",
+    "map_ext": "EP1-9",
     "element": "Earth",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_spector_m.png"
   },
   {
@@ -28,6 +30,7 @@
     "ep": 2,
     "respawn": 100,
     "map": "Nefritas Cliff",
+    "map_ext": "EP2-12",
     "element": "Earth",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_throneweaver.png"
@@ -39,6 +42,7 @@
     "ep": 2,
     "respawn": 100,
     "map": "Tenet Garden",
+    "map_ext": "EP2-13",
     "element": "Earth",
     "race": "Plant",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_nepenthes.png"
@@ -50,8 +54,9 @@
     "ep": 2,
     "respawn": 120,
     "map": "Tenet Church B1F",
+    "map_ext": "EP2-15",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_strongholder.png"
   },
   {
@@ -61,6 +66,7 @@
     "ep": 2,
     "respawn": 100,
     "map": "Tenet Church 1F",
+    "map_ext": "EP2-17",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_malletwyvern.png"
@@ -72,8 +78,9 @@
     "ep": 2,
     "respawn": 130,
     "map": "Tenet Church 2F",
+    "map_ext": "EP2-19",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_necrovanter.png"
   },
   {
@@ -83,6 +90,7 @@
     "ep": 3,
     "respawn": 120,
     "map": "Dadan Jungle",
+    "map_ext": "EP3-22",
     "element": "Earth",
     "race": "Plant",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_iltiswort.png"
@@ -94,6 +102,7 @@
     "ep": 3,
     "respawn": 120,
     "map": "Novaha Assembly Hall",
+    "map_ext": "EP3-24",
     "element": "Ice",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_mummyghast.png"
@@ -105,6 +114,7 @@
     "ep": 3,
     "respawn": 240,
     "map": "Novaha Annex",
+    "map_ext": "EP3-26",
     "element": "Light",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_velniamonkey.png"
@@ -116,8 +126,9 @@
     "ep": 3,
     "respawn": 120,
     "map": "Novaha Institute",
+    "map_ext": "EP3-28",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_deathweaver.png"
   },
   {
@@ -127,6 +138,7 @@
     "ep": 4,
     "respawn": 120,
     "map": "Cobalt Forest",
+    "map_ext": "EP4-32",
     "element": "Fire",
     "race": "Plant",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_clymen.png"
@@ -138,6 +150,7 @@
     "ep": 4,
     "respawn": 120,
     "map": "Septyni Glen",
+    "map_ext": "EP4-34",
     "element": "Lightning",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_mothstem.png"
@@ -149,6 +162,7 @@
     "ep": 4,
     "respawn": 120,
     "map": "Pelke Shrine Ruins",
+    "map_ext": "EP4-36",
     "element": "Ice",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_tutu.png"
@@ -160,6 +174,7 @@
     "ep": 4,
     "respawn": 120,
     "map": "Absenta Reservoir",
+    "map_ext": "EP4-38",
     "element": "Ice",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_hydra.png"
@@ -171,6 +186,7 @@
     "ep": 5,
     "respawn": 120,
     "map": "Delmore Hamlet",
+    "map_ext": "EP5-44",
     "element": "Earth",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_reaverpede.png"
@@ -182,6 +198,7 @@
     "ep": 5,
     "respawn": 120,
     "map": "Delmore Manor",
+    "map_ext": "EP5-46",
     "element": "Fire",
     "race": "Plant",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_grinender.png"
@@ -193,8 +210,9 @@
     "ep": 5,
     "respawn": 120,
     "map": "Delmore Outskirts",
+    "map_ext": "EP5-48",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bramble.png"
   },
   {
@@ -204,6 +222,7 @@
     "ep": 6,
     "respawn": 120,
     "map": "Uskis Arable Land",
+    "map_ext": "EP6-52",
     "element": "Earth",
     "race": "Beast",
     "img": "https://img5.pic.in.th/file/secure-sv1/Taumus.png"
@@ -215,6 +234,7 @@
     "ep": 6,
     "respawn": 120,
     "map": "Spring Light Woods",
+    "map_ext": "EP6-53",
     "element": "Lightning",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_manticen.png"
@@ -226,6 +246,7 @@
     "ep": 6,
     "respawn": 120,
     "map": "Gate Route",
+    "map_ext": "EP6-55",
     "element": "Fire",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_chafer.png"
@@ -237,8 +258,9 @@
     "ep": 6,
     "respawn": 120,
     "map": "Sirdgela Forest",
+    "map_ext": "EP6-57",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_archon.png"
   },
   {
@@ -248,6 +270,7 @@
     "ep": 6,
     "respawn": 120,
     "map": "Kvailas Forest",
+    "map_ext": "EP6-59",
     "element": "Earth",
     "race": "Plant",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bramble.png"
@@ -259,6 +282,7 @@
     "ep": 7,
     "respawn": 120,
     "map": "Zachariel Crossroads",
+    "map_ext": "EP7-62",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_bearkaras.png"
@@ -270,6 +294,7 @@
     "ep": 7,
     "respawn": 120,
     "map": "Royal Mausoleum 1F",
+    "map_ext": "EP7-64",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://img5.pic.in.th/file/secure-sv1/Tomb-Lord.png"
@@ -281,6 +306,7 @@
     "ep": 7,
     "respawn": 120,
     "map": "Royal Mausoleum 2F",
+    "map_ext": "EP7-66",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://img2.pic.in.th/Gorkas.png"
@@ -292,6 +318,7 @@
     "ep": 7,
     "respawn": 120,
     "map": "Royal Mausoleum 3F",
+    "map_ext": "EP7-68",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_lecifer.png"
@@ -303,6 +330,7 @@
     "ep": 8,
     "respawn": 120,
     "map": "Baron Allerno",
+    "map_ext": "EP8-70",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_confinedion.png"
@@ -314,6 +342,7 @@
     "ep": 8,
     "respawn": 120,
     "map": "Aqueduct Bridge Area",
+    "map_ext": "EP8-70",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_fallen_statue.png"
@@ -323,8 +352,9 @@
     "name": "Strong Blood",
     "lv": 72,
     "ep": 8,
-    "respawn": 140,
+    "respawn": 120,
     "map": "Demon Prison District 1",
+    "map_ext": "EP8-71",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://static.wikia.nocookie.net/treeofsavior/images/f/f2/CHAR_Blut.png/revision/latest/scale-to-width-down/300?cb=20190301044558"
@@ -336,8 +366,9 @@
     "ep": 8,
     "respawn": 120,
     "map": "Demon Prison District 3",
+    "map_ext": "EP8-72",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://tos.guru/assets/icons/boss_nuaelle.png"
   },
   {
@@ -347,8 +378,9 @@
     "ep": 8,
     "respawn": 126,
     "map": "Demon Prison District 4",
+    "map_ext": "EP8-73",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_dionys.png"
   },
   {
@@ -358,8 +390,9 @@
     "ep": 8,
     "respawn": 120,
     "map": "Demon Prison District 5",
+    "map_ext": "EP8-74",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_hauberk.png"
   },
   {
@@ -369,8 +402,9 @@
     "ep": 9,
     "respawn": 120,
     "map": "Goddess Ancient Garden",
+    "map_ext": "EP9-75",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_chapparition.png"
   },
   {
@@ -380,6 +414,7 @@
     "ep": 9,
     "respawn": 120,
     "map": "Fedimian Suburbs",
+    "map_ext": "EP9-76",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_devilglove.png"
@@ -391,6 +426,7 @@
     "ep": 9,
     "respawn": 120,
     "map": "Mage Tower 1F",
+    "map_ext": "EP9-77",
     "element": "Fire",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/m_boss_salamander.png"
@@ -402,6 +438,7 @@
     "ep": 9,
     "respawn": 120,
     "map": "Mage Tower 2F",
+    "map_ext": "EP9-78",
     "element": "Lightning",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_mineloader.png"
@@ -413,8 +450,9 @@
     "ep": 9,
     "respawn": 120,
     "map": "Mage Tower 3F",
+    "map_ext": "79",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_helgasercle.png"
   },
   {
@@ -424,6 +462,7 @@
     "ep": 10,
     "respawn": 120,
     "map": "Penitence Route",
+    "map_ext": "EP10-80",
     "element": "Dark",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_glackuman.png"
@@ -435,8 +474,9 @@
     "ep": 10,
     "respawn": 120,
     "map": "Main Building",
+    "map_ext": "EP10-81",
     "element": "Fire",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_fireload.png"
   },
   {
@@ -446,8 +486,9 @@
     "ep": 10,
     "respawn": 120,
     "map": "Grand Corridor",
+    "map_ext": "EP10-82",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/id_boss_riteris.png"
   },
   {
@@ -457,8 +498,9 @@
     "ep": 10,
     "respawn": 120,
     "map": "Sanctuary",
+    "map_ext": "EP10-83",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_naktis.png"
   },
   {
@@ -468,6 +510,7 @@
     "ep": 11,
     "respawn": 120,
     "map": "Laukyme Swamp",
+    "map_ext": "EP11-85",
     "element": "Fire",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_gaigalas.png"
@@ -479,6 +522,7 @@
     "ep": 11,
     "respawn": 120,
     "map": "Tyla Monastery",
+    "map_ext": "EP11-86",
     "element": "Earth",
     "race": "Aberration",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_teraox.png"
@@ -490,6 +534,7 @@
     "ep": 11,
     "respawn": 120,
     "map": "Bellai Rainforest",
+    "map_ext": "EP11-87",
     "element": "Earth",
     "race": "Beast",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_ferretmarauder.png"
@@ -501,6 +546,7 @@
     "ep": 11,
     "respawn": 120,
     "map": "Zeraha",
+    "map_ext": "EP11-88",
     "element": "Dark",
     "race": "Insects",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_kimeleech.png"
@@ -512,8 +558,9 @@
     "ep": 11,
     "respawn": 120,
     "map": "Seir Rainforest",
+    "map_ext": "EP11-89",
     "element": "Dark",
-    "race": "Devil",
+    "race": "Demon",
     "img": "https://www.tosbase.com/content/img/icons/monsters/boss_zawra.png"
   }
 ]
