@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.5.5 - Fix Accumulation</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>TOS-M Tracker V1.5.8 - Auto Refresh</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -87,6 +91,18 @@
     </div>
 
     <script>
+        // --- 1. SYSTEM: AUTO FORCE RELOAD LOGIC ---
+        const APP_VERSION = "1.5.8"; 
+        (function checkVersion() {
+            const savedVersion = localStorage.getItem('app_version');
+            if (savedVersion !== APP_VERSION) {
+                localStorage.setItem('app_version', APP_VERSION);
+                // สั่งรีโหลดพร้อมเติม version เข้าไปใน URL เพื่อล้าง Cache ของเบราว์เซอร์
+                window.location.href = window.location.pathname + '?v=' + APP_VERSION;
+            }
+        })();
+
+        // --- 2. DATABASE CONFIG ---
         const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
@@ -114,12 +130,25 @@
 
         async function _init() {
             const filterCont = document.getElementById('ep-filters');
-            for(let i=1; i<=11; i++) filterCont.innerHTML += `<button onclick="_filterEP('${i}')" class="filter-btn" id="f-${i}">EP ${i} <span id="badge-${i}" class="ep-badge hidden">0</span></button>`;
+            for(let i=1; i<=11; i++) {
+                if(!document.getElementById(`f-${i}`)) {
+                    filterCont.innerHTML += `<button onclick="_filterEP('${i}')" class="filter-btn" id="f-${i}">EP ${i} <span id="badge-${i}" class="ep-badge hidden">0</span></button>`;
+                }
+            }
             try {
+                // บังคับดึงข้อมูล JSON ใหม่เสมอด้วย Date.now()
                 const r = await fetch('bosses.json?v=' + Date.now());
                 _bsData = await r.json();
                 const sG = localStorage.getItem('tos_group_name'), sN = localStorage.getItem('tos_uret_name'), isL = localStorage.getItem('tos_locked') === 'true';
-                if (isL && sG) { _currG = sG; _isE = true; document.getElementById('input-fields').classList.add('hidden'); document.getElementById('locked-fields').classList.remove('hidden'); document.getElementById('display-usr').innerText = sN; document.getElementById('display-grp').innerText = sG; _sync(sG); }
+                if (isL && sG) { 
+                    _currG = sG; 
+                    _isE = true; 
+                    document.getElementById('input-fields').classList.add('hidden'); 
+                    document.getElementById('locked-fields').classList.remove('hidden'); 
+                    document.getElementById('display-usr').innerText = sN; 
+                    document.getElementById('display-grp').innerText = sG; 
+                    _sync(sG); 
+                }
                 _rend(); _vld(); _loop();
             } catch (e) { console.warn(e); }
         }
@@ -259,31 +288,21 @@
         function _loop() {
             setInterval(() => {
                 const now = Date.now() + _srvOfst;
-                
-                // แก้ไข: Reset ค่าสะสมใหม่ทุกรอบ เพื่อป้องกันตัวเลขค้างบน Badge
                 const epCounts = { all: 0 };
-                for(let i=1; i<=11; i++) { epCounts[i] = 0; }
-
                 _bsData.forEach(b => {
                     _updT(b.id);
                     const card = document.getElementById(`card-${b.id}`);
                     let hasAnyAlive = false;
-
-                    // แก้ไข: ปรับปรุง Loop เช็คสถานะการเกิดในแต่ละ Channel ให้ Real-time
                     [1, 2, 3].forEach(cNum => {
                         const timer = _fbD[`${b.id}_ch${cNum}`];
                         if (timer && (timer.expireTime - now) <= 0) { hasAnyAlive = true; }
                     });
-
                     if(card) card.classList.toggle('alive-glow', hasAnyAlive);
-                    
                     if(hasAnyAlive) {
                         epCounts.all++;
                         if(b.ep) epCounts[b.ep] = (epCounts[b.ep] || 0) + 1;
                     }
                 });
-
-                // แก้ไข: อัปเดตตัวเลข Badge ให้ตรงตามจำนวนจริง (ซ่อนถ้าเป็น 0)
                 Object.keys(epCounts).forEach(k => {
                     const badge = document.getElementById(`badge-${k}`);
                     if(badge) {
@@ -301,7 +320,7 @@
             const existingTimer = _fbD[`${id}_ch${ch}`];
             if (existingTimer && existingTimer.expireTime > now) {
                 const b = _bsData.find(x => x.id === id);
-                if (!confirm(`⚠️ บอส [${b.name}] CH ${ch} กำลังนับถอยหลังอยู่\nคุณต้องการตั้งเวลาใหม่ทับของเดิมใช่หรือไม่?`)) return;
+                if (!confirm(`⚠️ บอส [${b.name}] CH ${ch} กำลังนับถอยหลังอยู่\nต้องการตั้งเวลาใหม่ทับของเดิมใช่หรือไม่?`)) return;
             }
             const n = localStorage.getItem('tos_uret_name'), b = _bsData.find(x=>x.id===id);
             const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
@@ -319,10 +338,17 @@
             _post(id, "RESET", ch);
         } }
         function _pin(id) { const i = _pnBs.indexOf(id); i>-1 ? _pnBs.splice(i,1) : _pnBs.push(id); localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend(); }
+        
         function _save() {
             let g = document.getElementById('_grp').value, n = document.getElementById('_usr').value.trim();
             if (n === "/testadmin") { g = "test_server"; n = "Admin_Tester"; }
-            if (g && n) { localStorage.setItem('tos_group_name', g); localStorage.setItem('tos_uret_name', n); localStorage.setItem('tos_locked', 'true'); location.reload(); }
+            if (g && n) { 
+                localStorage.setItem('tos_group_name', g); 
+                localStorage.setItem('tos_uret_name', n); 
+                localStorage.setItem('tos_locked', 'true'); 
+                // บังคับ Reload เพื่อเริ่มการเชื่อมต่อใหม่
+                location.reload(); 
+            }
         }
         function _logout() { if(confirm("Logout Profile?")) { localStorage.clear(); location.reload(); } }
 
@@ -336,7 +362,7 @@
             const mapLoc = `${b.map}${b.map_ext ? ' (' + b.map_ext + ')' : ''}`;
             let prefix = (g === "test_server") ? "🧪 **[TEST MESSAGE]** " : "";
             let c = (ty === "ALIVE") 
-                ? `───────────────────\n${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}\n───────────────────\n`
+                 ? `───────────────────\n${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}\n───────────────────\n`
                 : `${prefix}🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]** ที่ **${mapLoc} (CH ${ch})** (Lv. ${b.lv} | EP ${b.ep})`;
             try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) { }
         }
