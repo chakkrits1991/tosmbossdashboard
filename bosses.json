@@ -381,7 +381,7 @@
     "map_ext": "EP8-73",
     "element": "Dark",
     "race": "Beast",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_dionys.png"
+    "img": "https://img5.pic.in.th/file/secure-sv1/Dionys.png"
   },
   {
     "id": "angry_demon_lord_hauberk",
@@ -537,7 +537,7 @@
     "map_ext": "EP11-87",
     "element": "Earth",
     "race": "Beast",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_ferretmarauder.png"
+    "img": "https://img5.pic.in.th/file/secure-sv1/Ferret-Marauder.png"
   },
   {
     "id": "strong_kirmeleech",
@@ -561,6 +561,6 @@
     "map_ext": "EP11-89",
     "element": "Dark",
     "race": "Demon",
-    "img": "https://www.tosbase.com/content/img/icons/monsters/boss_zawra.png"
+    "img": "https://img5.pic.in.th/file/secure-sv1/zaura.png"
   }
 ]
