@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.4.3 - Improved Status Dots</title>
+    <title>TOS-M Tracker V1.4.8 - Real-time Badge Fix</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -11,40 +11,34 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
         body { font-family: 'Kanit', sans-serif; background-color: #0b101a; color: #e2e8f0; -webkit-tap-highlight-color: transparent; }
-        .boss-card { border: 1px solid #1e293b; transition: all 0.3s ease; position: relative; order: 2; border-radius: 1.5rem; }
+        .boss-card { border: 1px solid #1e293b; transition: all 0.3s ease; position: relative; order: 2; border-radius: 1.5rem; background-color: #0f172a; }
         .boss-card.pinned { border-color: #fbbf24; background-color: #1e1b11; order: 1; }
-        .alive-glow { animation: shadow-pulse 1.5s infinite; border-color: #f97316 !important; }
-        @keyframes shadow-pulse { 0% { box-shadow: 0 0 0 0px rgba(249, 115, 22, 0.4); } 100% { box-shadow: 0 0 0 15px rgba(249, 115, 22, 0); } }
+        
+        .alive-glow { 
+            animation: shadow-pulse 1.5s infinite; 
+            border-color: #f97316 !important; 
+            background-color: rgba(249, 115, 22, 0.08) !important;
+        }
+        @keyframes shadow-pulse { 
+            0% { box-shadow: 0 0 0 0px rgba(249, 115, 22, 0.5); } 
+            100% { box-shadow: 0 0 0 15px rgba(249, 115, 22, 0); } 
+        }
+
         .btn-locked { opacity: 0.15; cursor: not-allowed !important; pointer-events: none; filter: grayscale(1); }
         .bg-black-40 { background-color: rgba(0, 0, 0, 0.4); }
         .text-event-orange { color: #f97316 !important; text-shadow: 0 0 10px rgba(249, 115, 22, 0.5); }
         
         .filter-btn { border: 1px solid #334155; padding: 0.4rem 0.8rem; border-radius: 12px; font-size: 0.75rem; font-weight: bold; transition: all 0.2s; background: #1e293b; color: #94a3b8; white-space: nowrap; position: relative; }
         .filter-btn.active { background-color: #f59e0b !important; color: #000 !important; border-color: #f59e0b !important; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
-        .ep-badge { position: absolute; top: -8px; right: -8px; background: #f97316; color: white; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 2px solid #0b101a; }
+        
+        .ep-badge { position: absolute; top: -8px; right: -8px; background: #f97316; color: white; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 2px solid #0b101a; pointer-events: none; z-index: 50; }
 
-        /* ปรับปรุงจุดแจ้งเตือนบนปุ่ม CH ให้ใหญ่ขึ้น */
         .ch-btn { position: relative; border-radius: 10px; font-size: 11px; font-weight: bold; transition: all 0.2s; border: 1px solid #334155; color: #94a3b8; background: #1e293b; }
         .ch-btn.active { background-color: #f59e0b; color: #000; border-color: #f59e0b; }
         
-        .status-dot { 
-            position: absolute; 
-            top: -4px; 
-            right: -4px; 
-            width: 12px; 
-            height: 12px; 
-            border-radius: 50%; 
-            border: 2px solid #0b101a; 
-            display: none; 
-            z-index: 10;
-        }
+        .status-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #0b101a; display: none; z-index: 10; }
         .status-dot.counting { display: block; background: #3b82f6; box-shadow: 0 0 5px rgba(59, 130, 246, 0.8); }
-        .status-dot.alive { 
-            display: block; 
-            background: #f97316; 
-            animation: blink 0.8s infinite; 
-            box-shadow: 0 0 8px rgba(249, 115, 22, 1);
-        }
+        .status-dot.alive { display: block; background: #f97316; animation: blink 0.8s infinite; box-shadow: 0 0 8px rgba(249, 115, 22, 1); }
         @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
 
         .log-container { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 1.5rem; overflow: hidden; }
@@ -56,7 +50,7 @@
 <body class="p-4 md:p-8">
 
     <header class="max-w-2xl mx-auto text-center mb-6">
-        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.4.3</h1>
+        <h1 class="text-3xl font-bold text-white mb-2">🌳 TOS-M Tracker V1.4.8</h1>
         <div id="c-status" class="text-xs text-yellow-500 font-bold uppercase tracking-widest">Disconnected</div>
     </header>
 
@@ -104,7 +98,7 @@
         <div class="log-container">
             <table class="w-full text-left log-table">
                 <thead><tr><th>Boss Name</th><th>CH</th><th>By</th><th>Time</th></tr></thead>
-                <tbody id="log-body"><tr><td colspan="4" class="text-center text-gray-600 py-10">Loading records...</td></tr></tbody>
+                <tbody id="log-body"></tbody>
             </table>
         </div>
     </div>
@@ -117,8 +111,8 @@
         let _bsData = [], _pnBs = JSON.parse(localStorage.getItem('tos_pinned_bosses') || '[]');
         let _fbD = {}, _fbLogs = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
         let _selectedCh = {};
-
         let _webhooks = {};
+
         _db.ref('config/webhooks').once('value', s => { _webhooks = s.val() || {}; });
         _db.ref(".info/serverTimeOffset").on("value", (s) => { _srvOfst = s.val() || 0; });
 
@@ -164,7 +158,7 @@
                     'dark': { border: '#bf00ff', text: '#e699ff', bg: 'rgba(148, 0, 211, 0.2)', label: 'ความมืด' }
                 }[elKey] || { border: '#9ca3af', text: '#f3f4f6', bg: 'rgba(156, 163, 175, 0.1)', label: b.element };
 
-                return `<div class="boss-card bg-gray-900 p-6 flex flex-col md:flex-row gap-6 ${p?'pinned':''}" id="card-${b.id}">
+                return `<div class="boss-card p-6 flex flex-col md:flex-row gap-6 ${p?'pinned':''}" id="card-${b.id}">
                     <div class="relative w-full md:w-36 h-36 flex-shrink-0 mx-auto">
                         <img src="${b.img}" class="w-full h-full object-cover rounded-2xl border border-gray-800" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="absolute -bottom-2 right-0 bg-yellow-600 text-black text-[10px] font-black px-2 py-0.5 rounded-lg z-10">EP ${b.ep}</div>
@@ -240,7 +234,7 @@
             const now = Date.now() + _srvOfst;
             const ch = _selectedCh[id] || 1;
             const t = _fbD[`${id}_ch${ch}`];
-            const tmE = document.getElementById(`tmr-${id}`), stE = document.getElementById(`st-${id}`), cdE = document.getElementById(`card-${id}`), lgE = document.getElementById(`log-${id}`);
+            const tmE = document.getElementById(`tmr-${id}`), stE = document.getElementById(`st-${id}`), lgE = document.getElementById(`log-${id}`);
             
             [1,2,3].forEach(cNum => {
                 const dot = document.getElementById(`dot-${id}-${cNum}`);
@@ -262,11 +256,9 @@
                     tmE.innerText = `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
                     tmE.className = "text-4xl text-yellow-400 font-mono";
                     stE.innerText = `CH ${ch} - COUNTING DOWN...`; stE.className = "text-[10px] text-gray-500 font-black mt-1 uppercase";
-                    cdE.classList.remove('alive-glow');
                 } else {
                     tmE.innerText = `CH ${ch} ALIVE! ⚔️`; tmE.className = "text-3xl text-event-orange font-bold animate-pulse";
                     stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-[10px] text-event-orange font-black mt-1 uppercase";
-                    cdE.classList.add('alive-glow');
                     if (!t.notified && _isE) { 
                         _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).update({ notified: true }); 
                         _post(id, "ALIVE", ch); 
@@ -275,20 +267,55 @@
             } else if (tmE) {
                 tmE.innerText = "READY"; tmE.className = "text-4xl text-yellow-400 font-mono";
                 stE.innerText = `CH ${ch} - Ready to Hunt`; stE.className = "text-[10px] text-green-500 font-black mt-1 uppercase";
-                lgE.innerText = `CH ${ch}: No Data`; cdE.classList.remove('alive-glow');
+                lgE.innerText = `CH ${ch}: No Data`;
             }
         }
 
         function _loop() {
             setInterval(() => {
-                const now = Date.now() + _srvOfst; const epCounts = { all: 0 };
+                const now = Date.now() + _srvOfst;
+                const epCounts = { all: 0 };
+                
                 _bsData.forEach(b => {
                     _updT(b.id);
-                    let hasAlive = false;
-                    [1,2,3].forEach(c => { if(_fbD[`${b.id}_ch${c}`] && (_fbD[`${b.id}_ch${c}`].expireTime - now) <= 0) hasAlive = true; });
-                    if(hasAlive) { epCounts.all++; if(b.ep) epCounts[b.ep] = (epCounts[b.ep]||0)+1; }
+                    const card = document.getElementById(`card-${b.id}`);
+                    
+                    let hasAnyAlive = false;
+                    [1, 2, 3].forEach(cNum => {
+                        const timer = _fbD[`${b.id}_ch${cNum}`];
+                        if (timer && (timer.expireTime - now) <= 0) {
+                            hasAnyAlive = true;
+                        }
+                    });
+
+                    // อัปเดตการเรืองแสง
+                    if(card) card.classList.toggle('alive-glow', hasAnyAlive);
+                    
+                    // นับจำนวนบอสที่เกิดแยกตาม EP (เช็คสถานะ Real-time)
+                    if(hasAnyAlive) {
+                        epCounts.all++;
+                        if(b.ep) epCounts[b.ep] = (epCounts[b.ep] || 0) + 1;
+                    }
                 });
-                Object.keys(epCounts).forEach(k => { const b = document.getElementById(`badge-${k}`); if(b) { b.innerText = epCounts[k]; b.classList.toggle('hidden', epCounts[k]===0); } });
+
+                // อัปเดตตัวเลขแจ้งเตือนบนปุ่ม EP แบบ Real-time
+                Object.keys(epCounts).forEach(k => {
+                    const badge = document.getElementById(`badge-${k}`);
+                    if(badge) {
+                        badge.innerText = epCounts[k];
+                        badge.classList.toggle('hidden', epCounts[k] === 0);
+                    }
+                });
+                
+                // เคลียร์ Badge ของ EP ที่ไม่มีบอสเกิด (เผื่อกรณีจากมีเป็นศูนย์)
+                document.querySelectorAll('.ep-badge').forEach(badge => {
+                    const epId = badge.id.replace('badge-', '');
+                    if (!epCounts[epId]) {
+                        badge.classList.add('hidden');
+                        badge.innerText = "0";
+                    }
+                });
+
             }, 1000);
         }
 
