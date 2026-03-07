@@ -35,6 +35,8 @@
         .log-table th { background: #0f172a; color: #94a3b8; font-size: 0.7rem; padding: 0.75rem; }
         .log-table td { padding: 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.8rem; }
         .hidden { display: none !important; }
+        #backToTop { transition: opacity 0.3s, visibility 0.3s;}
+        #backToTop.show { opacity: 1;display: flex !important;}
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -130,6 +132,25 @@
             document.getElementById(`f-${ep}`).classList.add('active');
             _rend();
         }
+
+        // ฟังก์ชันเลื่อนขึ้นด้านบน
+        function _scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ตรวจสอบการเลื่อนหน้าจอเพื่อแสดง/ซ่อนปุ่ม
+        window.onscroll = function() {
+            const btn = document.getElementById("backToTop");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.classList.add("show");
+                btn.classList.remove("hidden");
+            } else {
+                btn.classList.remove("show");
+                setTimeout(() => {
+                    if(!btn.classList.contains("show")) btn.classList.add("hidden");
+                }, 300);
+            }
+        };
 
         function _vld() {
             const g = document.getElementById('_grp').value, u = document.getElementById('_usr').value.trim();
@@ -409,5 +430,8 @@
         }
         _init();
     </script>
+    <button id="backToTop" onclick="_scrollToTop()" class="fixed bottom-6 right-6 w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center opacity-0 transition-opacity duration-300 z-50 border border-blue-400 focus:outline-none hidden">
+    <span class="material-symbols-outlined">arrow_upward</span>
+</button>
 </body>
 </html>
