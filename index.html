@@ -35,8 +35,14 @@
         .log-table th { background: #0f172a; color: #94a3b8; font-size: 0.7rem; padding: 0.75rem; }
         .log-table td { padding: 0.75rem; border-bottom: 1px solid #1e293b; font-size: 0.8rem; }
         .hidden { display: none !important; }
-        #backToTop { transition: opacity 0.3s, visibility 0.3s;}
-        #backToTop.show { opacity: 1;display: flex !important;}
+
+        /* Hall of Fame Medal Design */
+        .medal-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 1rem; transition: transform 0.2s; }
+        .medal-gold { border-color: #fbbf24; background: linear-gradient(135deg, #2d240b 0%, #0f172a 100%); box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
+        
+        /* Back to Top Design */
+        #backToTop { transition: all 0.3s ease; transform: translateY(20px); opacity: 0; }
+        #backToTop.show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -81,13 +87,11 @@
     <div id="b-cont" class="max-w-2xl mx-auto flex flex-col gap-6 mb-10"></div>
 
     <div class="max-w-2xl mx-auto mb-10">
-        <h2 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">workspace_premium</span> Top Contributors (เชิดชูเกียรติ)
+        <h2 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">workspace_premium</span> Top Contributors (Medals)
         </h2>
-        <div class="log-container p-4">
-            <div id="ranking-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div class="text-center py-4 col-span-full text-gray-500 text-xs italic">กำลังคำนวณอันดับ...</div>
-            </div>
+        <div id="hof-medal-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="col-span-full text-center py-4 text-gray-500 text-xs italic">กำลังประมวลผลอันดับ...</div>
         </div>
     </div>
 
@@ -102,6 +106,10 @@
             </table>
         </div>
     </div>
+
+    <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center z-50 border border-blue-400 focus:outline-none">
+        <span class="material-symbols-outlined">arrow_upward</span>
+    </button>
 
     <script>
         const APP_VERSION = "1.6.0"; 
@@ -121,7 +129,6 @@
         let _fbD = {}, _fbLogs = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
         let _selectedCh = {};
         let _webhooks = {};
-        let _isManualCh = {}; 
 
         _db.ref('config/webhooks').once('value', s => { _webhooks = s.val() || {}; });
         _db.ref(".info/serverTimeOffset").on("value", (s) => { _srvOfst = s.val() || 0; });
@@ -132,25 +139,6 @@
             document.getElementById(`f-${ep}`).classList.add('active');
             _rend();
         }
-
-        // ฟังก์ชันเลื่อนขึ้นด้านบน
-        function _scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // ตรวจสอบการเลื่อนหน้าจอเพื่อแสดง/ซ่อนปุ่ม
-        window.onscroll = function() {
-            const btn = document.getElementById("backToTop");
-            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-                btn.classList.add("show");
-                btn.classList.remove("hidden");
-            } else {
-                btn.classList.remove("show");
-                setTimeout(() => {
-                    if(!btn.classList.contains("show")) btn.classList.add("hidden");
-                }, 300);
-            }
-        };
 
         function _vld() {
             const g = document.getElementById('_grp').value, u = document.getElementById('_usr').value.trim();
@@ -249,7 +237,6 @@
         }
 
         function _setCh(id, ch) {
-            _isManualCh[id] = true; 
             _selectedCh[id] = ch;
             [1, 2, 3].forEach(i => {
                 const btn = document.getElementById(`btn-ch-${id}-${i}`);
@@ -260,33 +247,35 @@
 
         function _sync(g) {
             _db.ref(`groups/${g}/timers`).on('value', s => { _fbD = s.val() || {}; });
-            // ดึง Log ทั้งหมดมาเพื่อคำนวณ Ranking แบบ Real-time
             _db.ref(`groups/${g}/logs`).on('value', s => { 
-                const allLogs = s.val() || {};
-                _fbLogs = allLogs; 
+                _fbLogs = s.val() || {}; 
                 _updLog(); 
-                _calcRank(allLogs); 
+                _updMedals(); // Sync medals when logs change
             });
             document.getElementById('c-status').innerText = `● Connected: ${g}`;
             document.getElementById('c-status').className = "text-xs text-green-500 font-bold uppercase tracking-widest";
         }
 
-        function _calcRank(logs) {
+        // NEW: Medal Update Logic
+        function _updMedals() {
             const counts = {};
-            Object.values(logs).forEach(log => { if (log.user) counts[log.user] = (counts[log.user] || 0) + 1; });
+            Object.values(_fbLogs).forEach(log => {
+                if (log.user) counts[log.user] = (counts[log.user] || 0) + 1;
+            });
             const sorted = Object.entries(counts).sort(([,a], [,b]) => b - a).slice(0, 4);
-            const rankCont = document.getElementById('ranking-list');
+            const medalCont = document.getElementById('hof-medal-list');
+            
             if (sorted.length === 0) {
-                rankCont.innerHTML = `<div class="text-center py-2 col-span-full text-gray-500 text-xs italic">ยังไม่มีข้อมูลการช่วยกด</div>`;
+                medalCont.innerHTML = `<div class="col-span-full text-center py-4 text-gray-500 text-xs italic">ยังไม่มีข้อมูลสถิติ</div>`;
                 return;
             }
-            const medals = ['🥇', '🥈', '🥉', '🎖️'];
-            rankCont.innerHTML = sorted.map(([name, count], i) => `
-                <div class="bg-gray-800/50 border border-gray-700 rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div class="text-2xl mb-1">${medals[i] || '🎖️'}</div>
-                    <div class="text-[11px] font-bold text-white truncate w-full text-center">${name}</div>
-                    <div class="text-[10px] text-blue-400 font-black mt-1">${count} ครั้ง</div>
-                    <div class="absolute -bottom-1 -right-1 opacity-10 text-4xl font-black italic text-white">${i+1}</div>
+
+            const icons = ['🥇', '🥈', '🥉', '🎖️'];
+            medalCont.innerHTML = sorted.map(([name, count], i) => `
+                <div class="medal-card p-4 flex flex-col items-center justify-center text-center ${i===0?'medal-gold':''}">
+                    <div class="text-3xl mb-1">${icons[i]}</div>
+                    <div class="text-[11px] font-bold text-white truncate w-full uppercase tracking-tighter">${name}</div>
+                    <div class="text-[10px] text-blue-400 font-black mt-1">${count} RECORDS</div>
                 </div>
             `).join('');
         }
@@ -299,35 +288,23 @@
 
         function _updT(id) {
             const now = Date.now() + _srvOfst;
-            let ch = _selectedCh[id] || 1;
+            const ch = _selectedCh[id] || 1;
+            const t = _fbD[`${id}_ch${ch}`];
             const tmE = document.getElementById(`tmr-${id}`), stE = document.getElementById(`st-${id}`), lgE = document.getElementById(`log-${id}`);
             
-            if (!tmE) return;
-            let aliveCh = null;
-
             [1,2,3].forEach(cNum => {
                 const dot = document.getElementById(`dot-${id}-${cNum}`);
-                const ct = _fbD[`${id}_ch${cNum}`];
-                if(ct && ct.expireTime) {
-                    const rSec = (ct.expireTime - now) / 1000;
-                    const isAlive = rSec <= 0;
-                    if(dot) dot.className = isAlive ? "status-dot alive" : "status-dot counting";
-                    if (isAlive) aliveCh = cNum;
-                    if (rSec < -1200 && _isE) { _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove(); }
-                } else { if(dot) dot.className = "status-dot"; }
+                if(dot) {
+                    const ct = _fbD[`${id}_ch${cNum}`];
+                    if(ct) {
+                        const rSec = (ct.expireTime - now) / 1000;
+                        dot.className = (rSec <= 0) ? "status-dot alive" : "status-dot counting";
+                        if (rSec < -1200 && _isE) { _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove(); }
+                    } else { dot.className = "status-dot"; }
+                }
             });
 
-            if (aliveCh && !_isManualCh[id] && ch !== aliveCh) {
-                _selectedCh[id] = aliveCh;
-                ch = aliveCh;
-                [1, 2, 3].forEach(i => {
-                    const btn = document.getElementById(`btn-ch-${id}-${i}`);
-                    if (btn) btn.classList.toggle('active', i === ch);
-                });
-            }
-
-            const t = _fbD[`${id}_ch${ch}`];
-            if (t && t.expireTime) {
+            if (t && tmE) {
                 const r = Math.floor((t.expireTime - now) / 1000);
                 lgE.innerText = `CH ${ch}: By ${t.user} (${t.time})`;
                 if (r > 0) {
@@ -343,7 +320,7 @@
                         _post(id, "ALIVE", ch); 
                     }
                 }
-            } else {
+            } else if (tmE) {
                 tmE.innerText = "READY"; tmE.className = "text-4xl text-yellow-400 font-mono";
                 stE.innerText = `CH ${ch} - Ready to Hunt`; stE.className = "text-[10px] text-green-500 font-black mt-1 uppercase";
                 lgE.innerText = `CH ${ch}: No Data`;
@@ -377,6 +354,16 @@
                 });
             }, 1000);
         }
+
+        // Back to Top Logic
+        window.onscroll = function() {
+            const btn = document.getElementById("backToTop");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.classList.add("show");
+            } else {
+                btn.classList.remove("show");
+            }
+        };
 
         function _chk(id, m) {
             if (!_isE) return;
@@ -430,8 +417,5 @@
         }
         _init();
     </script>
-    <button id="backToTop" onclick="_scrollToTop()" class="fixed bottom-6 right-6 w-12 h-12 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center opacity-0 transition-opacity duration-300 z-50 border border-blue-400 focus:outline-none hidden">
-    <span class="material-symbols-outlined">arrow_upward</span>
-</button>
 </body>
 </html>
