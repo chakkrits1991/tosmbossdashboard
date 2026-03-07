@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOS-M Tracker V1.5.1 - Protection Lock</title>
+    <title>TOS-M Tracker V1.5.5 - Fix Accumulation</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -259,21 +259,31 @@
         function _loop() {
             setInterval(() => {
                 const now = Date.now() + _srvOfst;
+                
+                // แก้ไข: Reset ค่าสะสมใหม่ทุกรอบ เพื่อป้องกันตัวเลขค้างบน Badge
                 const epCounts = { all: 0 };
+                for(let i=1; i<=11; i++) { epCounts[i] = 0; }
+
                 _bsData.forEach(b => {
                     _updT(b.id);
                     const card = document.getElementById(`card-${b.id}`);
                     let hasAnyAlive = false;
+
+                    // แก้ไข: ปรับปรุง Loop เช็คสถานะการเกิดในแต่ละ Channel ให้ Real-time
                     [1, 2, 3].forEach(cNum => {
                         const timer = _fbD[`${b.id}_ch${cNum}`];
                         if (timer && (timer.expireTime - now) <= 0) { hasAnyAlive = true; }
                     });
+
                     if(card) card.classList.toggle('alive-glow', hasAnyAlive);
+                    
                     if(hasAnyAlive) {
                         epCounts.all++;
                         if(b.ep) epCounts[b.ep] = (epCounts[b.ep] || 0) + 1;
                     }
                 });
+
+                // แก้ไข: อัปเดตตัวเลข Badge ให้ตรงตามจำนวนจริง (ซ่อนถ้าเป็น 0)
                 Object.keys(epCounts).forEach(k => {
                     const badge = document.getElementById(`badge-${k}`);
                     if(badge) {
@@ -284,34 +294,24 @@
             }, 1000);
         }
 
-        // --- แก้ไขฟังก์ชัน _chk ให้มีการป้องกันการกดทับเวลา ---
         function _chk(id, m) {
             if (!_isE) return;
             const ch = _selectedCh[id] || 1;
             const now = Date.now() + _srvOfst;
-            
-            // ตรวจสอบว่ามีข้อมูลเดิมอยู่และยังไม่หมดเวลาหรือไม่
             const existingTimer = _fbD[`${id}_ch${ch}`];
             if (existingTimer && existingTimer.expireTime > now) {
                 const b = _bsData.find(x => x.id === id);
-                if (!confirm(`⚠️ บอส [${b.name}] CH ${ch} กำลังนับถอยหลังอยู่ (เหลือประมาณ ${Math.floor((existingTimer.expireTime - now)/60000)} นาที)\nคุณต้องการตั้งเวลาใหม่ทับของเดิมใช่หรือไม่?`)) {
-                    return; // ยกเลิกการตั้งเวลา
-                }
+                if (!confirm(`⚠️ บอส [${b.name}] CH ${ch} กำลังนับถอยหลังอยู่\nคุณต้องการตั้งเวลาใหม่ทับของเดิมใช่หรือไม่?`)) return;
             }
-
             const n = localStorage.getItem('tos_uret_name'), b = _bsData.find(x=>x.id===id);
             const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
             _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ expireTime: now+(m*60*1000), user: n, time: timeStr, notified: false, ch: ch });
             _db.ref(`groups/${_currG}/logs`).push({ bossName: b.name, ch: ch, user: n, time: timeStr, timestamp: now });
         }
 
-        // --- แก้ไขฟังก์ชัน _mchk เพื่อรองรับการป้องกันเช่นกัน ---
         function _mchk(id) { 
             const v = document.getElementById(`in-${id}`).value; 
-            if(v){ 
-                _chk(id, parseFloat(v)); 
-                document.getElementById(`in-${id}`).value=''; 
-            } 
+            if(v){ _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value=''; } 
         }
 
         function _rst(id) { const ch = _selectedCh[id] || 1; if(_isE && confirm(`Reset CH ${ch} ของบอสตัวนี้?`)) { 
@@ -336,7 +336,7 @@
             const mapLoc = `${b.map}${b.map_ext ? ' (' + b.map_ext + ')' : ''}`;
             let prefix = (g === "test_server") ? "🧪 **[TEST MESSAGE]** " : "";
             let c = (ty === "ALIVE") 
-                ? `${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}`
+                ? `───────────────────\n${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}\n───────────────────\n`
                 : `${prefix}🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]** ที่ **${mapLoc} (CH ${ch})** (Lv. ${b.lv} | EP ${b.ep})`;
             try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) { }
         }
