@@ -225,7 +225,7 @@
     "map_ext": "EP6-52",
     "element": "Earth",
     "race": "Beast",
-    "img": "https://img5.pic.in.th/file/secure-sv1/Taumus.png"
+    "img": "https://img1.pic.in.th/images/Taumus.png"
   },
   {
     "id": "cowardly_manticen",
@@ -297,7 +297,7 @@
     "map_ext": "EP7-64",
     "element": "Dark",
     "race": "Aberration",
-    "img": "https://img5.pic.in.th/file/secure-sv1/Tomb-Lord.png"
+    "img": "https://img1.pic.in.th/images/Tomb-Lord.png"
   },
   {
     "id": "strong_gorkas",
@@ -381,7 +381,7 @@
     "map_ext": "EP8-73",
     "element": "Dark",
     "race": "Beast",
-    "img": "https://img5.pic.in.th/file/secure-sv1/Dionys.png"
+    "img": "https://img2.pic.in.th/Dionys.png"
   },
   {
     "id": "angry_demon_lord_hauberk",
@@ -537,7 +537,7 @@
     "map_ext": "EP11-87",
     "element": "Earth",
     "race": "Beast",
-    "img": "https://img5.pic.in.th/file/secure-sv1/Ferret-Marauder.png"
+    "img": "https://img1.pic.in.th/images/Ferret-Marauder.png"
   },
   {
     "id": "strong_kirmeleech",
@@ -561,7 +561,7 @@
     "map_ext": "EP11-89",
     "element": "Dark",
     "race": "Demon",
-    "img": "https://img5.pic.in.th/file/secure-sv1/zaura.png"
+    "img": "https://img1.pic.in.th/images/zaura.png"
   },
   {
     "id": "strong_stone_whale",
@@ -597,7 +597,7 @@
     "map_ext": "EP12-92",
     "element": "Dark",
     "race": "Beast",
-    "img": "https://img5.pic.in.th/file/secure-sv1/Svitrigaila.png"
+    "img": "https://img2.pic.in.th/Svitrigaila.png"
   },
   {
     "id": "indignant_marnox",
