@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>TOS-M Tracker V1.7.0 - Stage Sync Edition</title>
+    <title>TOS-M Tracker V1.8.5 - Stage Security Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -28,7 +28,6 @@
         .ch-btn { position: relative; border-radius: 10px; font-size: 11px; font-weight: bold; transition: all 0.2s; border: 1px solid #334155; color: #94a3b8; background: #1e293b; }
         .ch-btn.active { background-color: #f59e0b; color: #000; border-color: #f59e0b; }
         
-        /* Stage Buttons Styling */
         .stage-btn { font-size: 10px; font-weight: bold; border: 1px solid #334155; background: #1e293b; color: #94a3b8; border-radius: 8px; padding: 2px 8px; transition: all 0.2s; }
         .stage-btn.active-1 { background: #4b5563; color: white; border-color: #6b7280; }
         .stage-btn.active-2 { background: #3b82f6; color: white; border-color: #60a5fa; }
@@ -119,7 +118,7 @@
     </button>
 
     <script>
-        const APP_VERSION = "1.7.0"; 
+        const APP_VERSION = "1.8.5"; 
         const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
@@ -246,26 +245,27 @@
             const n = localStorage.getItem('tos_uret_name');
             const b = _bsData.find(x => x.id === id);
             const now = Date.now() + _srvOfst;
+            const currentTimer = _fbD[`${id}_ch${ch}`];
+
+            // SECURITY CHECK: ตรวจสอบว่าบอสถึงเวลาเกิด (ช่วง ALIVE) หรือยัง
+            if (!currentTimer || currentTimer.expireTime > now) {
+                alert(`❌ บอสยังไม่ถึงช่วงปลุกบอส! (กรุณารอให้นับถอยหลังเสร็จก่อน)`);
+                return;
+            }
             
             let updateData = {
                 stage: stage,
-                stage_by: n
+                stage_by: n,
+                last_update: now // บันทึกเวลาที่อัปเดตเพื่อป้องกันการ Auto-Reset
             };
 
             if (stage === 5) {
-                // ถ้ากด Stage 5 (บอสเกิด) ให้บันทึก Log ว่าบอสเกิด พร้อมกับข้อมูลผู้กดและเวลา
                 const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
                 _db.ref(`groups/${_currG}/logs`).push({
                     bossName: b.name + " (SPAWNED)",
                     ch: ch, user: n, time: timeStr, timestamp: now
                 });
                 _post(id, "BOSS_SPAWN", ch);
-            } else {
-                // *** ส่วนที่คุณต้องการ ***
-                // ถ้ากด Stage 1-4 ให้ "ต่อเวลา" สถานะ ALIVE ออกไปอีก 20 นาทีจากตอนนี้
-                // เพื่อไม่ให้ฟังก์ชัน _updT สั่งลบ (Remove) ข้อมูลทิ้งเพราะนึกว่าไม่มีคนตี
-                updateData.expireTime = now - 1000; // ให้ expireTime ติดลบนิดหน่อยเพื่อให้คงสถานะ ALIVE
-                updateData.last_update = now; // เก็บเวลาที่กดอัปเดตล่าสุดไว้เช็ค
             }
 
             _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).update(updateData);
@@ -283,7 +283,7 @@
             Object.values(_fbLogs).forEach(log => { if (log.user) counts[log.user] = (counts[log.user] || 0) + 1; });
             const sorted = Object.entries(counts).sort(([,a], [,b]) => b - a).slice(0, 4);
             const medalCont = document.getElementById('hof-medal-list');
-            if (sorted.length === 0) { medalCont.innerHTML = `<div class="col-span-full text-center py-4 text-gray-500 text-xs italic">ยังไม่มีข้อมูลสถิติ</div>`; return; }
+            if (sorted.length === 0) { medalCont.innerHTML = `<div class="col-span-full text-center py-4 text-gray-500 text-xs italic">ยังไม่มีข้อมูลสถิติ...</div>`; return; }
             const icons = ['🥇', '🥈', '🥉', '🎖️'];
             medalCont.innerHTML = sorted.map(([name, count], i) => `<div class="medal-card p-4 flex flex-col items-center justify-center text-center ${i===0?'medal-gold':''}"><div class="text-3xl mb-1">${icons[i]}</div><div class="text-[11px] font-bold text-white truncate w-full uppercase tracking-tighter">${name}</div><div class="text-[10px] text-blue-400 font-black mt-1">${count} RECORDS</div></div>`).join('');
         }
@@ -311,10 +311,8 @@
                         else { dot.className = "status-dot counting"; }
                     }
                     if (_isE) {
-                    const lastActive = ct.last_update || ct.expireTime; // ถ้าไม่มี last_update ให้ใช้ expireTime เดิม
-                    const idleTime = (now - lastActive) / 1000;
-
-                        // ถ้าไม่มีการอัปเดต Stage หรือไม่มีการทำอะไรเลยเกิน 20 นาที (1200 วินาที) ค่อยลบ
+                        const lastActive = ct.last_update || ct.expireTime;
+                        const idleTime = (now - lastActive) / 1000;
                         if (idleTime > 1200 ) { 
                             _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove(); 
                         }
@@ -341,9 +339,15 @@
                 lgE.innerText = `CH ${currentCh}: By ${t.user || 'Unknown'} (${t.time || '--:--'})`;
                 
                 const curStage = t.stage || 0;
+                const isAlive = r <= 0;
+
                 [1, 2, 3, 4, 5].forEach(num => {
                     const sBtn = document.getElementById(`btn-stg-${id}-${num}`);
-                    if (sBtn) sBtn.className = `stage-btn ${_isE ? "" : "btn-locked"} ${curStage === num ? 'active-' + num : ''}`;
+                    if (sBtn) {
+                        // ปิดการคลิกปุ่ม Stage ถ้ายังไม่ถึงช่วง ALIVE
+                        sBtn.classList.toggle('btn-locked', !isAlive || !_isE);
+                        sBtn.className = `stage-btn ${(!isAlive || !_isE) ? "btn-locked" : ""} ${curStage === num ? 'active-' + num : ''}`;
+                    }
                 });
 
                 if (r > 0) {
@@ -365,7 +369,7 @@
                 lgE.innerText = `CH ${currentCh}: No Data`;
                 [1, 2, 3, 4, 5].forEach(num => {
                     const sBtn = document.getElementById(`btn-stg-${id}-${num}`);
-                    if (sBtn) sBtn.className = `stage-btn ${_isE ? "" : "btn-locked"}`;
+                    if (sBtn) sBtn.className = `stage-btn btn-locked ${_isE ? "" : "btn-locked"}`;
                 });
             }
         }
