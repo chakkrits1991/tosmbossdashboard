@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>TOS-M Tracker V1.6.8 - Badge Sync Edition</title>
+    <title>TOS-M Tracker V1.7.0 - Stage Sync Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -27,6 +27,16 @@
         .ep-badge { position: absolute; top: -8px; right: -8px; background: #f97316; color: white; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 2px solid #0b101a; pointer-events: none; z-index: 50; }
         .ch-btn { position: relative; border-radius: 10px; font-size: 11px; font-weight: bold; transition: all 0.2s; border: 1px solid #334155; color: #94a3b8; background: #1e293b; }
         .ch-btn.active { background-color: #f59e0b; color: #000; border-color: #f59e0b; }
+        
+        /* Stage Buttons Styling */
+        .stage-btn { font-size: 10px; font-weight: bold; border: 1px solid #334155; background: #1e293b; color: #94a3b8; border-radius: 8px; padding: 2px 8px; transition: all 0.2s; }
+        .stage-btn.active-1 { background: #4b5563; color: white; border-color: #6b7280; }
+        .stage-btn.active-2 { background: #3b82f6; color: white; border-color: #60a5fa; }
+        .stage-btn.active-3 { background: #8b5cf6; color: white; border-color: #a78bfa; }
+        .stage-btn.active-4 { background: #ec4899; color: white; border-color: #f472b6; }
+        .stage-btn.active-5 { background: #f97316; color: white; border-color: #fb923c; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
         .status-dot { position: absolute; top: -4px; right: -4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #0b101a; display: none; z-index: 10; }
         .status-dot.counting { display: block; background: #3b82f6; box-shadow: 0 0 5px rgba(59, 130, 246, 0.8); }
         .status-dot.alive { display: block; background: #f97316; animation: blink 0.8s infinite; box-shadow: 0 0 8px rgba(249, 115, 22, 1); }
@@ -109,7 +119,7 @@
     </button>
 
     <script>
-        const APP_VERSION = "1.6.8"; 
+        const APP_VERSION = "1.7.0"; 
         const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
@@ -199,6 +209,9 @@
                         <div class="mt-4 bg-black rounded-2xl py-3 px-2 text-center border border-gray-800 shadow-inner">
                             <div id="tmr-${b.id}" class="text-4xl text-yellow-400 font-mono">READY</div>
                             <div id="st-${b.id}" class="text-[10px] text-green-500 font-black mt-1 uppercase">Ready to Hunt</div>
+                            <div class="mt-2 flex justify-center gap-1" id="stage-cont-${b.id}">
+                                ${[1, 2, 3, 4, 5].map(num => `<button id="btn-stg-${b.id}-${num}" onclick="_setStage('${b.id}', ${num})" class="stage-btn ${l}">${num === 5 ? 'BOSS' : 'ST ' + num}</button>`).join('')}
+                            </div>
                         </div>
                         <div class="mt-4">
                             <div class="flex gap-1 mb-2 justify-center">
@@ -225,6 +238,37 @@
                 if (btn) btn.classList.toggle('active', i === ch);
             });
             _updT(id);
+        }
+
+        function _setStage(id, stage) {
+            if (!_isE) return;
+            const ch = _selectedCh[id] || 1;
+            const n = localStorage.getItem('tos_uret_name');
+            const b = _bsData.find(x => x.id === id);
+            const now = Date.now() + _srvOfst;
+            
+            let updateData = {
+                stage: stage,
+                stage_by: n
+            };
+
+            if (stage === 5) {
+                // ถ้ากด Stage 5 (บอสเกิด) ให้บันทึก Log ว่าบอสเกิด พร้อมกับข้อมูลผู้กดและเวลา
+                const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                _db.ref(`groups/${_currG}/logs`).push({
+                    bossName: b.name + " (SPAWNED)",
+                    ch: ch, user: n, time: timeStr, timestamp: now
+                });
+                _post(id, "BOSS_SPAWN", ch);
+            } else {
+                // *** ส่วนที่คุณต้องการ ***
+                // ถ้ากด Stage 1-4 ให้ "ต่อเวลา" สถานะ ALIVE ออกไปอีก 20 นาทีจากตอนนี้
+                // เพื่อไม่ให้ฟังก์ชัน _updT สั่งลบ (Remove) ข้อมูลทิ้งเพราะนึกว่าไม่มีคนตี
+                updateData.expireTime = now - 1000; // ให้ expireTime ติดลบนิดหน่อยเพื่อให้คงสถานะ ALIVE
+                updateData.last_update = now; // เก็บเวลาที่กดอัปเดตล่าสุดไว้เช็ค
+            }
+
+            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).update(updateData);
         }
 
         function _sync(g) {
@@ -266,7 +310,15 @@
                         if (rSec <= 0) { dot.className = "status-dot alive"; if (aliveCh === null) aliveCh = cNum; } 
                         else { dot.className = "status-dot counting"; }
                     }
-                    if (rSec < -1200 && _isE) { _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove(); }
+                    if (_isE) {
+                    const lastActive = ct.last_update || ct.expireTime; // ถ้าไม่มี last_update ให้ใช้ expireTime เดิม
+                    const idleTime = (now - lastActive) / 1000;
+
+                        // ถ้าไม่มีการอัปเดต Stage หรือไม่มีการทำอะไรเลยเกิน 20 นาที (1200 วินาที) ค่อยลบ
+                        if (idleTime > 1200 ) { 
+                            _db.ref(`groups/${_currG}/timers/${id}_ch${cNum}`).remove(); 
+                        }
+                    }
                 } else if(dot) { dot.className = "status-dot"; }
             });
 
@@ -287,6 +339,13 @@
             if (t && tmE) {
                 const r = Math.floor((t.expireTime - now) / 1000);
                 lgE.innerText = `CH ${currentCh}: By ${t.user || 'Unknown'} (${t.time || '--:--'})`;
+                
+                const curStage = t.stage || 0;
+                [1, 2, 3, 4, 5].forEach(num => {
+                    const sBtn = document.getElementById(`btn-stg-${id}-${num}`);
+                    if (sBtn) sBtn.className = `stage-btn ${_isE ? "" : "btn-locked"} ${curStage === num ? 'active-' + num : ''}`;
+                });
+
                 if (r > 0) {
                     let h=Math.floor(r/3600), m=Math.floor((r%3600)/60), s=r%60;
                     tmE.innerText = `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
@@ -294,7 +353,7 @@
                     stE.innerText = `CH ${currentCh} - COUNTING DOWN...`; stE.className = "text-[10px] text-gray-500 font-black mt-1 uppercase";
                 } else {
                     tmE.innerText = `CH ${currentCh} ALIVE! ⚔️`; tmE.className = "text-3xl text-event-orange font-bold animate-pulse";
-                    stE.innerText = "ตีมอนปลุกบอส!"; stE.className = "text-[10px] text-event-orange font-black mt-1 uppercase";
+                    stE.innerText = curStage === 5 ? "บอสเกิดแล้ว! ⚔️" : "ตีมอนปลุกบอส!"; stE.className = "text-[10px] text-event-orange font-black mt-1 uppercase";
                     if (!t.notified && _isE) { 
                         _db.ref(`groups/${_currG}/timers/${id}_ch${currentCh}`).update({ notified: true }); 
                         _post(id, "ALIVE", currentCh); 
@@ -304,6 +363,10 @@
                 tmE.innerText = "READY"; tmE.className = "text-4xl text-yellow-400 font-mono";
                 stE.innerText = `CH ${currentCh} - Ready to Hunt`; stE.className = "text-[10px] text-green-500 font-black mt-1 uppercase";
                 lgE.innerText = `CH ${currentCh}: No Data`;
+                [1, 2, 3, 4, 5].forEach(num => {
+                    const sBtn = document.getElementById(`btn-stg-${id}-${num}`);
+                    if (sBtn) sBtn.className = `stage-btn ${_isE ? "" : "btn-locked"}`;
+                });
             }
         }
 
@@ -311,35 +374,24 @@
             setInterval(() => {
                 const now = Date.now() + _srvOfst;
                 const epCounts = { all: 0 };
-                
                 _bsData.forEach(b => {
                     _updT(b.id);
                     const card = document.getElementById(`card-${b.id}`);
                     let hasAnyAlive = false;
-
                     [1, 2, 3].forEach(cNum => {
                         const timer = _fbD[`${b.id}_ch${cNum}`];
-                        if (timer && (timer.expireTime - now) <= 0) {
-                            hasAnyAlive = true;
-                        }
+                        if (timer && (timer.expireTime - now) <= 0) { hasAnyAlive = true; }
                     });
-
                     if(card) card.classList.toggle('alive-glow', hasAnyAlive);
-                    
                     if(hasAnyAlive) { 
                         epCounts.all++; 
                         if(b.ep) epCounts[b.ep] = (epCounts[b.ep] || 0) + 1; 
                     }
                 });
-
-                const allBadges = document.querySelectorAll('.ep-badge');
-                allBadges.forEach(bg => {
-                    const epKey = bg.id.replace('badge-', '');
-                    const count = epCounts[epKey] || 0;
-                    bg.innerText = count;
-                    bg.classList.toggle('hidden', count === 0);
+                document.querySelectorAll('.ep-badge').forEach(bg => {
+                    const epKey = bg.id.replace('badge-', ''), count = epCounts[epKey] || 0;
+                    bg.innerText = count; bg.classList.toggle('hidden', count === 0);
                 });
-
             }, 1000);
         }
 
@@ -354,7 +406,7 @@
             }
             const n = localStorage.getItem('tos_uret_name'), b = _bsData.find(x=>x.id===id);
             const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ expireTime: now+(m*60*1000), user: n, time: timeStr, notified: false, ch: ch });
+            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ expireTime: now+(m*60*1000), user: n, time: timeStr, notified: false, ch: ch, stage: 0 });
             _db.ref(`groups/${_currG}/logs`).push({ bossName: b.name, ch: ch, user: n, time: timeStr, timestamp: now });
         }
 
@@ -370,17 +422,22 @@
         function _logout() { if(confirm("Logout Profile?")) { localStorage.clear(); location.reload(); } }
 
         async function _post(id, ty, ch) {
-            const g = localStorage.getItem('tos_group_name');
-            const w = _webhooks[g]; if (!w) return;
+            const g = localStorage.getItem('tos_group_name'), w = _webhooks[g]; if (!w) return;
             const role_ids = { "giltine": "1477963807245602837", "austeja": "1477969803967725648", "saule": "1477969920456265748", "zemyna": "1477970066338349227", "laima": "1477970107350122557", "vaivora": "1477970160492089481", "ausirine": "1477970230734098432", "vakarine": "1477970281862664242" };
             const b = _bsData.find(x => x.id === id), u = localStorage.getItem('tos_uret_name'), rId = role_ids[g] || ""; 
             const mention = rId ? `<@&${rId}>` : `@${g.toUpperCase()}`;
             const nowServer = Date.now() + _srvOfst, nowTH = new Date(nowServer).toLocaleTimeString('th-TH', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const mapLoc = `${b.map}${b.map_ext ? ' (' + b.map_ext + ')' : ''}`;
             let prefix = (g === "test_server") ? "🧪 **[TEST MESSAGE]** " : "";
-            let c = (ty === "ALIVE") 
-                  ? `───────────────────\n${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}\n───────────────────\n`
-                : `${prefix}🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]** ที่ **${mapLoc} (CH ${ch})** (Lv. ${b.lv} | EP ${b.ep})`;
+            
+            let c = "";
+            if (ty === "ALIVE") {
+                c = `───────────────────\n${prefix}**EVENT START!** บอส **[${b.name}]** เข้าสู่ช่วงปลุกบอสแล้ว!\n⭐ Level: **${b.lv || '???'}** | 📂 Episode: **${b.ep || '??'}**\n📍 สถานที่: **${mapLoc} (CH ${ch})**\n⏰ เวลาปัจจุบัน (TH): **${nowTH}**\nรีบไปตีมอนเปิดสเตจด่วน! ${mention}\n───────────────────\n`;
+            } else if (ty === "BOSS_SPAWN") {
+                c = `🔥🔥 **BOSS IS HERE!** บอส **[${b.name}]** เกิดแล้วที่ **${mapLoc} (CH ${ch})**! ${mention}`;
+            } else {
+                c = `${prefix}🗑️ **[${u}]** ลบเวลาบอส: **[${b.name}]** ที่ **${mapLoc} (CH ${ch})**`;
+            }
             try { await fetch(w, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: c }) }); } catch (e) { }
         }
 
