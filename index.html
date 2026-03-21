@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>TOS-M Tracker V1.9.0 - Multi-Channel Edition</title>
+    <title>TOS-M Tracker V1.9.0 - Penalty Tier Edition</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -26,7 +26,6 @@
         .filter-btn.active { background-color: #f59e0b !important; color: #000 !important; border-color: #f59e0b !important; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
         .ep-badge { position: absolute; top: -8px; right: -8px; background: #f97316; color: white; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 2px solid #0b101a; pointer-events: none; z-index: 50; }
         
-        /* ปรับ CH Button ให้เล็กลงเพื่อรองรับหลายช่อง */
         .ch-btn { position: relative; border-radius: 10px; font-size: 10px; font-weight: bold; transition: all 0.2s; border: 1px solid #334155; color: #94a3b8; background: #1e293b; min-width: 45px; }
         .ch-btn.active { background-color: #f59e0b; color: #000; border-color: #f59e0b; }
         
@@ -120,7 +119,7 @@
     </button>
 
     <script>
-        const APP_VERSION = "1.9.0"; 
+        const APP_VERSION = "1.9.1"; 
         const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
@@ -129,6 +128,9 @@
         let _fbD = {}, _fbLogs = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
         let _selectedCh = {}, _hasAutoSwitched = {}; 
         let _webhooks = {};
+        
+        // Penalty Variables
+        let _isInternalCoolingDown = false;
 
         _db.ref('config/webhooks').once('value', s => { _webhooks = s.val() || {}; });
         _db.ref(".info/serverTimeOffset").on("value", (s) => { _srvOfst = s.val() || 0; });
@@ -177,7 +179,6 @@
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
                 const curCh = _selectedCh[b.id] || 1;
                 
-                // กำหนดจำนวน Channel ตาม EP
                 const maxCh = (b.ep === 13 || b.ep === "13") ? 5 : 3;
                 const chButtons = [];
                 for(let i=1; i<=maxCh; i++) {
@@ -395,32 +396,102 @@
             }, 1000);
         }
 
+        // --- เพิ่มระบบตรวจสอบ Penalty และป้องกันการกดทับ ---
         function _chk(id, m) {
-            if (!_isE) return;
-            const ch = _selectedCh[id] || 1;
+            if (!_isE || _isInternalCoolingDown) return;
             const now = Date.now() + _srvOfst;
+            
+            // ตรวจสอบ Penalty Tier จากเครื่อง
+            let pD = JSON.parse(localStorage.getItem('tos_penalty_reset') || '{"unlockTime": 0}');
+            if (now < pD.unlockTime) {
+                const diff = Math.ceil((pD.unlockTime - now) / 1000);
+                let timeText = diff > 60 ? Math.ceil(diff/60) + " นาที" : diff + " วินาที";
+                alert(`❌ [ระบบป้องกัน] คุณยังติดคูลดาวน์จากการลบบอส\nกรุณารออีก ${timeText}`);
+                return;
+            }
+
+            const ch = _selectedCh[id] || 1;
             const existing = _fbD[`${id}_ch${ch}`];
             if (existing && existing.expireTime > now) {
                 const b = _bsData.find(x => x.id === id);
                 if (!confirm(`⚠️ บอส [${b.name}] CH ${ch} กำลังนับถอยหลังอยู่\nต้องการตั้งเวลาใหม่ทับของเดิมใช่หรือไม่?`)) return;
             }
+
             const n = localStorage.getItem('tos_uret_name'), b = _bsData.find(x=>x.id===id);
             const timeStr = new Date(now).toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ expireTime: now+(m*60*1000), user: n, time: timeStr, notified: false, ch: ch, stage: 0 });
-            _db.ref(`groups/${_currG}/logs`).push({ bossName: b.name, ch: ch, user: n, time: timeStr, timestamp: now });
+            
+            _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).set({ 
+                expireTime: now+(m*60*1000), 
+                user: n, 
+                time: timeStr, 
+                notified: false, 
+                ch: ch, 
+                stage: 0 
+            });
+            
+            _db.ref(`groups/${_currG}/logs`).push({ 
+                bossName: b.name, ch: ch, user: n, time: timeStr, timestamp: now 
+            });
         }
 
         function _mchk(id) { const v = document.getElementById(`in-${id}`).value; if(v){ _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value=''; } }
-        function _rst(id) { const ch = _selectedCh[id] || 1; if(_isE && confirm(`Reset CH ${ch}?`)) { _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).remove(); _post(id, "RESET", ch); } }
+        
+        // --- แก้ไขระบบ Reset ให้มี Penalty Tier ---
+        function _rst(id) {
+            if (!_isE || _isInternalCoolingDown) return;
+            const ch = _selectedCh[id] || 1, now = Date.now() + _srvOfst;
+            
+            // ดึงค่า หรือสร้างใหม่ถ้าไม่มี
+            let pD = JSON.parse(localStorage.getItem('tos_penalty_reset') || '{"count": 0, "lastReset": 0, "unlockTime": 0}');
+            if (now < pD.unlockTime) {
+                const diff = Math.ceil((pD.unlockTime - now) / 1000);
+                alert(`❌ [ระบบป้องกัน] คุณกดลบบอสบ่อยเกินไป\nกรุณารออีก ${diff > 60 ? Math.ceil(diff/60) + " นาที" : diff + " วินาที"}`);
+                return;
+            }
+
+            if(confirm(`Reset CH ${ch}?`)) {
+                // คำนวณครั้งที่ลบ (ถ้าห่างเกิน 1 ชม. เริ่มนับ 1 ใหม่)
+                if (now - (pD.lastReset || 0) > 3600000) pD.count = 1; else pD.count = (pD.count || 0) + 1;
+                
+                // แก้ไขเงื่อนไขเวลา: ครั้งที่ 1 = 30 วิ, ครั้งที่ 2 = 5 นาที, ครั้งที่ 3+ = 30 นาที
+                let cooldownMs = 30000; // default 30s
+                if (pD.count === 2) cooldownMs = 300000; // 5m
+                else if (pD.count >= 3) cooldownMs = 1800000; // 30m
+                pD.lastReset = now; 
+                pD.unlockTime = now + cooldownMs;
+                
+                localStorage.setItem('tos_penalty_reset', JSON.stringify(pD));
+                _isInternalCoolingDown = true;
+                
+                _db.ref(`groups/${_currG}/timers/${id}_ch${ch}`).remove().then(() => {
+                    _post(id, "RESET", ch);
+                    const nextT = new Date(pD.unlockTime).toLocaleTimeString('th-TH');
+                    alert(`⚠️ บันทึกการลบครั้งที่ ${pD.count}\nคุณจะถูกระงับการใช้งานจนถึงเวลา ${nextT}`);
+                    setTimeout(() => { _isInternalCoolingDown = false; }, 2000);
+                });
+            }
+        }
+
         function _pin(id) { const i = _pnBs.indexOf(id); i>-1 ? _pnBs.splice(i,1) : _pnBs.push(id); localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend(); }
         
         function _save() {
             let g = document.getElementById('_grp').value, n = document.getElementById('_usr').value.trim();
-            if (n === "/testadmin") { g = "test_server"; n = "Admin_Tester"; }
+            if (n === "/testadmin") { 
+                g = "test_server"; 
+                n = "Admin_Tester"; 
+                // ล้างข้อมูล Penalty ทั้งหมดในเครื่องนี้
+                localStorage.removeItem('tos_penalty_reset');
+            }
             if (g && n) { localStorage.setItem('tos_group_name', g); localStorage.setItem('tos_uret_name', n); localStorage.setItem('tos_locked', 'true'); location.reload(); }
         }
-        function _logout() { if(confirm("Logout Profile?")) { localStorage.clear(); location.reload(); } }
-
+        function _logout() { 
+            if(confirm("Logout Profile?")) { 
+                localStorage.removeItem('tos_group_name');
+                localStorage.removeItem('tos_uret_name');
+                localStorage.removeItem('tos_locked');
+                location.reload(); 
+            }
+        }
         async function _post(id, ty, ch) {
             const g = localStorage.getItem('tos_group_name'), w = _webhooks[g]; if (!w) return;
             const role_ids = { "giltine": "1477963807245602837", "austeja": "1477969803967725648", "saule": "1477969920456265748", "zemyna": "1477970066338349227", "laima": "1477970107350122557", "vaivora": "1477970160492089481", "ausirine": "1477970230734098432", "vakarine": "1477970281862664242" };
