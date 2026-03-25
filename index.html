@@ -73,7 +73,7 @@
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 font-bold mb-1 uppercase tracking-widest">Your Name</label>
-                        <input type="text" id="_usr" oninput="_vld()" placeholder="Nickname" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
+                        <input type="text" id="_usr" oninput="_vld()" maxlength="16" placeholder="Nickname" class="w-full bg-black-40 border border-gray-600 rounded-xl px-4 py-2 text-sm text-white outline-none">
                     </div>
                 </div>
                 <button id="_svB" onclick="_save()" class="w-full mt-1 bg-blue-600 text-white text-xs py-3 rounded-xl font-bold btn-locked uppercase transition-all">Save & Connect Profile</button>
@@ -129,6 +129,10 @@
         let _selectedCh = {}, _hasAutoSwitched = {}; 
         let _webhooks = {};
         
+        let _blacklist = {};
+        // ดึงข้อมูลรายชื่อ IP ที่โดนแบนมาเก็บไว้ในตัวแปร _blacklist
+        _db.ref('blacklist_ips').on('value', s => { _blacklist = s.val() || {}; });
+
         // Penalty Variables
         let _isInternalCoolingDown = false;
 
@@ -397,7 +401,7 @@
         }
 
         // --- เพิ่มระบบตรวจสอบ Penalty และป้องกันการกดทับ ---
-        function _chk(id, m) {
+        async function _chk(id, m) {
             if (!_isE || _isInternalCoolingDown) return;
             const now = Date.now() + _srvOfst;
             
@@ -437,7 +441,7 @@
         function _mchk(id) { const v = document.getElementById(`in-${id}`).value; if(v){ _chk(id, parseFloat(v)); document.getElementById(`in-${id}`).value=''; } }
         
         // --- แก้ไขระบบ Reset ให้มี Penalty Tier ---
-        function _rst(id) {
+        async function _rst(id) {
             if (!_isE || _isInternalCoolingDown) return;
             const ch = _selectedCh[id] || 1, now = Date.now() + _srvOfst;
             
@@ -474,16 +478,66 @@
 
         function _pin(id) { const i = _pnBs.indexOf(id); i>-1 ? _pnBs.splice(i,1) : _pnBs.push(id); localStorage.setItem('tos_pinned_bosses', JSON.stringify(_pnBs)); _rend(); }
         
-        function _save() {
+        async function _recordAccess(g, n) {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                const userIP = data.ip;
+                const ipKey = userIP.replace(/\./g, '_'); // แปลงจุดเป็นขีดล่างสำหรับ Firebase
+
+                // --- เพิ่มส่วนเช็คแบนตรงนี้ ---
+                if (_blacklist[userIP] === true || _blacklist[ipKey] === true) {
+                    return "BANNED"; // ส่งสถานะกลับไปว่าโดนแบน
+                }
+
+                // บันทึกลง Firebase (เฉพาะคนที่ไม่ได้โดนแบน)
+                await _db.ref('access_logs/' + g + '/' + Date.now()).set({
+                    user: n,
+                    ip: userIP,
+                    ua: navigator.userAgent,
+                    time: new Date().toLocaleString('th-TH')
+                });
+                
+                return "OK";
+            } catch (e) {
+                console.error("IP Log Error:", e);
+                return "ERROR";
+            }
+        }
+
+        async function _save() {
             let g = document.getElementById('_grp').value, n = document.getElementById('_usr').value.trim();
+
+            // เพิ่มการตรวจสอบความยาวชื่อตรงนี้
+            if (n.length > 16) {
+                alert("❌ ชื่อของคุณยาวเกินไป (สูงสุด 16 ตัวอักษร)");
+                return;
+            }
+
             if (n === "/testadmin") { 
                 g = "test_server"; 
                 n = "Admin_Tester"; 
                 // ล้างข้อมูล Penalty ทั้งหมดในเครื่องนี้
                 localStorage.removeItem('tos_penalty_reset');
             }
-            if (g && n) { localStorage.setItem('tos_group_name', g); localStorage.setItem('tos_uret_name', n); localStorage.setItem('tos_locked', 'true'); location.reload(); }
-        }
+
+            if (g && n) { 
+
+                // บันทึก Log และเช็คแบนในตัวเดียว
+                const result = await _recordAccess(g, n);
+
+                if (result === "BANNED") {
+                    alert("❌ ไม่สามารถเข้าใช้งานได้: IP ของคุณถูกระงับการใช้งาน");
+                    return; // หยุดทำงาน ไม่บันทึก localStorage
+                }
+
+                localStorage.setItem('tos_group_name', g); 
+                localStorage.setItem('tos_uret_name', n); 
+                localStorage.setItem('tos_locked', 'true'); 
+                               
+                location.reload(); 
+            }
+         }
         function _logout() { 
             if(confirm("Logout Profile?")) { 
                 localStorage.removeItem('tos_group_name');
