@@ -119,11 +119,11 @@
     </button>
 
     <script>
-        const APP_VERSION = "1.9.1"; 
+        const APP_VERSION = "1.9.2"; 
         const _0x1f2a = { databaseURL: "https://tos-boss-tracker-default-rtdb.asia-southeast1.firebasedatabase.app/" };
         firebase.initializeApp(_0x1f2a);
         const _db = firebase.database();
-        
+      
         let _bsData = [], _pnBs = JSON.parse(localStorage.getItem('tos_pinned_bosses') || '[]');
         let _fbD = {}, _fbLogs = {}, _isE = false, _currG = "", _curEP = "all", _srvOfst = 0;
         let _selectedCh = {}, _hasAutoSwitched = {}; 
@@ -153,6 +153,26 @@
         }
 
         async function _init() {
+            _db.ref('min_version').on('value', snapshot => {
+                const minV = String(snapshot.val()); // ดึง "1.9.2" จาก Firebase
+                const currentV = localStorage.getItem('tos_app_v') || "0";
+
+                // ถ้าเวอร์ชันในเครื่องไม่ตรงกับที่ Firebase กำหนด (และไม่ใช่หน้า Login เปล่าๆ)
+                if (minV && currentV !== minV) {
+                    
+                    // ล้างข้อมูลเดิม
+                    localStorage.removeItem('tos_group_name');
+                    localStorage.removeItem('tos_uret_name');
+                    localStorage.removeItem('tos_locked');
+                    
+                    // บันทึกเลขเวอร์ชันใหม่ลงเครื่องทันทีเพื่อกัน Loop
+                    localStorage.setItem('tos_app_v', minV);
+                    
+                    alert("🔄 อัปเดตระบบเป็นเวอร์ชัน " + minV + "\nกรุณาเข้าสู่ระบบใหม่อีกครั้ง");
+                    location.reload();
+                }
+            });
+
             const filterCont = document.getElementById('ep-filters');
             for(let i=1; i<=13; i++) {
                 if(!document.getElementById(`f-${i}`)) {
@@ -530,6 +550,10 @@
                     alert("❌ ไม่สามารถเข้าใช้งานได้: IP ของคุณถูกระงับการใช้งาน");
                     return; // หยุดทำงาน ไม่บันทึก localStorage
                 }
+
+                // ดึงเวอร์ชันล่าสุดมาเก็บไว้ตอนล็อกอินสำเร็จ
+                const vSnap = await _db.ref('min_version').once('value');
+                localStorage.setItem('tos_app_v', String(vSnap.val() || "1.9.2"));
 
                 localStorage.setItem('tos_group_name', g); 
                 localStorage.setItem('tos_uret_name', n); 
