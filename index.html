@@ -203,7 +203,7 @@
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
                 const curCh = _selectedCh[b.id] || 1;
                 
-                const maxCh = (b.ep === 13 || b.ep === "13") ? 5 : 3;
+                const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
                 const chButtons = [];
                 for(let i=1; i<=maxCh; i++) {
                     chButtons.push(`<button id="btn-ch-${b.id}-${i}" onclick="_setCh('${b.id}', ${i})" class="ch-btn px-2 py-1 ${i===curCh?'active':''} ${l}">CH ${i}<span id="dot-${b.id}-${i}" class="status-dot"></span></button>`);
@@ -268,7 +268,7 @@
             _selectedCh[id] = ch;
             _hasAutoSwitched[id] = true; 
             const b = _bsData.find(x => x.id === id);
-            const maxCh = (b.ep === 13 || b.ep === "13") ? 5 : 3;
+            const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
             for(let i=1; i<=maxCh; i++) {
                 const btn = document.getElementById(`btn-ch-${id}-${i}`);
                 if (btn) btn.classList.toggle('active', i === ch);
@@ -330,7 +330,7 @@
             const now = Date.now() + _srvOfst;
             let currentCh = _selectedCh[id] || 1;
             const b = _bsData.find(x => x.id === id);
-            const maxCh = (b.ep === 13 || b.ep === "13") ? 5 : 3;
+            const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
             const inputEl = document.getElementById(`in-${id}`);
             const isFocusing = (inputEl && document.activeElement === inputEl);
             let aliveCh = null;
@@ -404,7 +404,7 @@
                 const now = Date.now() + _srvOfst, epCounts = { all: 0 };
                 _bsData.forEach(b => {
                     _updT(b.id);
-                    const card = document.getElementById(`card-${b.id}`), maxCh = (b.ep === 13 || b.ep === "13") ? 5 : 3;
+                    const card = document.getElementById(`card-${b.id}`), maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
                     let hasAnyAlive = false;
                     for(let cNum=1; cNum<=maxCh; cNum++) {
                         const timer = _fbD[`${b.id}_ch${cNum}`];
