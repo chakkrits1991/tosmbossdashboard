@@ -174,7 +174,7 @@
             });
 
             const filterCont = document.getElementById('ep-filters');
-            for(let i=1; i<=13; i++) {
+            for(let i=1; i<=15; i++) {
                 if(!document.getElementById(`f-${i}`)) {
                     filterCont.innerHTML += `<button onclick="_filterEP('${i}')" class="filter-btn" id="f-${i}">EP ${i} <span id="badge-${i}" class="ep-badge hidden">0</span></button>`;
                 }
@@ -203,7 +203,8 @@
                 const p = _pnBs.includes(`card-${b.id}`), l = _isE ? "" : "btn-locked";
                 const curCh = _selectedCh[b.id] || 1;
                 
-                const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
+                const isHighEP = ["13", "14", "15"].includes(String(b.ep));
+                const maxCh = isHighEP ? 9 : 3;
                 const chButtons = [];
                 for(let i=1; i<=maxCh; i++) {
                     chButtons.push(`<button id="btn-ch-${b.id}-${i}" onclick="_setCh('${b.id}', ${i})" class="ch-btn px-2 py-1 ${i===curCh?'active':''} ${l}">CH ${i}<span id="dot-${b.id}-${i}" class="status-dot"></span></button>`);
@@ -268,7 +269,8 @@
             _selectedCh[id] = ch;
             _hasAutoSwitched[id] = true; 
             const b = _bsData.find(x => x.id === id);
-            const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
+            const isHighEP = ["13", "14", "15"].includes(String(b.ep));
+            const maxCh = isHighEP ? 9 : 3;
             for(let i=1; i<=maxCh; i++) {
                 const btn = document.getElementById(`btn-ch-${id}-${i}`);
                 if (btn) btn.classList.toggle('active', i === ch);
@@ -330,7 +332,8 @@
             const now = Date.now() + _srvOfst;
             let currentCh = _selectedCh[id] || 1;
             const b = _bsData.find(x => x.id === id);
-            const maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
+            const isHighEP = ["13", "14", "15"].includes(String(b.ep));
+            const maxCh = isHighEP ? 9 : 3;
             const inputEl = document.getElementById(`in-${id}`);
             const isFocusing = (inputEl && document.activeElement === inputEl);
             let aliveCh = null;
@@ -404,7 +407,9 @@
                 const now = Date.now() + _srvOfst, epCounts = { all: 0 };
                 _bsData.forEach(b => {
                     _updT(b.id);
-                    const card = document.getElementById(`card-${b.id}`), maxCh = (b.ep === 13 || b.ep === "13") ? 9 : 3;
+                    const isHighEP = ["13", "14", "15"].includes(String(b.ep));
+                    const maxCh = isHighEP ? 9 : 3;
+                    const card = document.getElementById(`card-${b.id}`);
                     let hasAnyAlive = false;
                     for(let cNum=1; cNum<=maxCh; cNum++) {
                         const timer = _fbD[`${b.id}_ch${cNum}`];
